@@ -87,7 +87,7 @@
 
   // ---------- Welcome ----------
 
-  function Welcome({ aff, onDismiss }) {
+  function Welcome({ aff, promos, onDismiss }) {
     return (
       <div className="welcome">
         <div className="welcome-head">
@@ -100,6 +100,23 @@
           <li>Click <strong>Download all</strong> to grab the full ZIP.</li>
           <li>Post the assets to LinkedIn, X, Instagram, your newsletter, your Zoom background.</li>
         </ol>
+
+        {promos && promos.length > 0 && (
+          <>
+            <div className="rules-head">What your referrals get when they sign up with your code</div>
+            <ul className="promos">
+              {promos.map(p => (
+                <li key={p.id}>
+                  <strong>{p.headline}.</strong>{p.detail ? ' ' + p.detail : ''}
+                </li>
+              ))}
+            </ul>
+            <p style={{ fontSize: 13, color: 'rgba(15,27,45,0.55)', marginTop: 4 }}>
+              Mention these in your posts. They're already baked into the LinkedIn banner, share card, email banner, and one-pager.
+            </p>
+          </>
+        )}
+
         <div className="rules-head">Three rules to keep the kit working</div>
         <ul className="rules">
           <li>Use the assets as-generated. Don't crop, recolour, or overlay other text.</li>
@@ -214,13 +231,15 @@
 
   // ---------- Generator ----------
 
-  function Generator({ initialAff, cobrandedPartner, adminMode, onLogout }) {
+  function Generator({ initialAff, cobrandedPartner, promotions, adminMode, onLogout }) {
     const [aff, setAff] = useState(initialAff);
     const [mode, setMode] = useState('light');
     const [line, setLine] = useState(POSITIONING_LINES[0]);
     const [viewportW, setViewportW] = useState(window.innerWidth);
     const [welcomeOpen, setWelcomeOpen] = useState(true);
     const [progress, setProgress] = useState(null);
+    const [promosOn, setPromosOn] = useState(true);
+    const promos = promosOn ? (promotions || []) : [];
 
     const [cobrandEnabled, setCobrandEnabled] = useState(false);
     const [partner, setPartner] = useState(() => cobrandedPartner ? {
@@ -323,6 +342,12 @@
                 <button className={cobrandEnabled ? 'active' : ''} onClick={() => setCobrandEnabled(true)}>Co-brand</button>
               </div>
             )}
+            {promotions && promotions.length > 0 && (
+              <div className="pill" role="radiogroup" aria-label="Promotions">
+                <button className={promosOn ? 'active' : ''} onClick={() => setPromosOn(true)}>Perks on</button>
+                <button className={!promosOn ? 'active' : ''} onClick={() => setPromosOn(false)}>Perks off</button>
+              </div>
+            )}
             <button className="btn" onClick={downloadAllZip}>Download all (ZIP)</button>
             {adminMode && (
               <div className="admin-row">
@@ -341,7 +366,7 @@
 
         <div className="canvas">
           {welcomeOpen
-            ? <Welcome aff={aff} onDismiss={() => setWelcomeOpen(false)} />
+            ? <Welcome aff={aff} promos={promotions || []} onDismiss={() => setWelcomeOpen(false)} />
             : <button className="show-welcome-pill" onClick={() => setWelcomeOpen(true)}>Show welcome</button>
           }
           {groups.map(g => (
@@ -349,7 +374,7 @@
               <header className="section-header"><h2>{g.name}</h2></header>
               {g.items.map(asset => {
                 const scale = Math.min(1, maxArtboardW / asset.w);
-                return <Artboard key={asset.id} asset={asset} aff={aff} dark={dark} line={line} scale={scale} cobrand={cobrand} />;
+                return <Artboard key={asset.id} asset={asset} aff={aff} dark={dark} line={line} scale={scale} cobrand={cobrand} promos={promos} />;
               })}
             </section>
           ))}
@@ -420,6 +445,7 @@
     return <Generator
       initialAff={resolved.affiliate}
       cobrandedPartner={resolved.cobranded}
+      promotions={resolved.promotions || []}
       adminMode={adminMode}
       onLogout={() => setResolved(null)}
     />;

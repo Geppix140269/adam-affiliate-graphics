@@ -7,7 +7,7 @@
 // submitted key. Access keys are ~96 bits of entropy so brute force is
 // infeasible; a light rate limit deters abuse.
 
-import { getAffiliates, getCobranded } from './_lib/blob.js';
+import { getAffiliates, getCobranded, getPromotions } from './_lib/blob.js';
 import { resp, methodNotAllowed, parseJson } from './_lib/resp.js';
 
 // Simple per-IP rate limit: 30 attempts / 60s. Keys are unguessable so
@@ -54,7 +54,9 @@ async function handle(req) {
   const key = String(body.key).trim();
   if (!key) return resp(400, { error: 'Access key required.' });
 
-  const [affiliates, cobranded] = await Promise.all([getAffiliates(), getCobranded()]);
+  const [affiliates, cobranded, promotions] = await Promise.all([
+    getAffiliates(), getCobranded(), getPromotions(),
+  ]);
 
   let match = null;
   for (const [code, entry] of Object.entries(affiliates)) {
@@ -76,7 +78,14 @@ async function handle(req) {
     logo_url: cb.logo_url || null,
   } : null;
 
-  return resp(200, { affiliate: match, cobranded: cobrandedOut });
+  // Promotions: only enabled ones, sorted by `order`, stripped of timestamps.
+  const promoList = Object.entries(promotions || {})
+    .filter(([, p]) => p && p.enabled !== false && p.headline)
+    .map(([id, p]) => ({ id, headline: p.headline, detail: p.detail || '', order: p.order ?? 99 }))
+    .sort((a, b) => a.order - b.order)
+    .map(({ id, headline, detail }) => ({ id, headline, detail }));
+
+  return resp(200, { affiliate: match, cobranded: cobrandedOut, promotions: promoList });
 }
 
 export const config = { path: '/api/validate' };

@@ -11,6 +11,7 @@ const __here = path.dirname(fileURLToPath(import.meta.url));
 const STORE_NAME = 'config';
 const KEY_AFFILIATES = 'affiliates';
 const KEY_COBRANDED = 'cobranded_partners';
+const KEY_PROMOTIONS = 'promotions';
 
 function readSeedFile(filename) {
   try {
@@ -40,6 +41,22 @@ function enrichAffiliateSeed(seed) {
       notes: entry.notes || '',
       access_key: entry.access_key || generateAccessKey(),
       created_at: entry.created_at || now,
+      updated_at: entry.updated_at || now,
+    };
+  }
+  return out;
+}
+
+function enrichPromotionsSeed(seed) {
+  const now = nowIso();
+  const out = {};
+  let i = 1;
+  for (const [id, entry] of Object.entries(seed || {})) {
+    out[id] = {
+      headline: entry.headline || '',
+      detail: entry.detail || '',
+      enabled: entry.enabled !== false,
+      order: typeof entry.order === 'number' ? entry.order : i++,
       updated_at: entry.updated_at || now,
     };
   }
@@ -121,4 +138,12 @@ export async function getCobranded() {
 
 export async function setCobranded(data) {
   return writeBlob(KEY_COBRANDED, data);
+}
+
+export async function getPromotions() {
+  return readBlob(KEY_PROMOTIONS, enrichPromotionsSeed, 'promotions.json');
+}
+
+export async function setPromotions(data) {
+  return writeBlob(KEY_PROMOTIONS, data);
 }

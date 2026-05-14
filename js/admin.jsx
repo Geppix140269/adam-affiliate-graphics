@@ -643,6 +643,103 @@
     );
   }
 
+  // ---------- Promotions tab ----------
+  function PromotionsTab({ toast }) {
+    const [data, setData] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [err, setErr] = useState(null);
+
+    const load = useCallback(async () => {
+      setLoading(true); setErr(null);
+      try {
+        const r = await apiCall('/api/admin/promotions');
+        setData(r.promotions || {});
+      } catch (e) { setErr(e.message); toast('err', e.message); }
+      finally { setLoading(false); }
+    }, [toast]);
+
+    useEffect(() => { load(); }, [load]);
+
+    function updateField(id, field, value) {
+      setData(d => ({ ...d, [id]: { ...d[id], [field]: value } }));
+    }
+
+    async function save() {
+      setSaving(true); setErr(null);
+      try {
+        await apiCall('/api/admin/promotions', { method: 'PUT', body: { promotions: data } });
+        toast('ok', 'Promotions saved. Live within ~5 seconds.');
+        load();
+      } catch (e) { setErr(e.message); toast('err', e.message); }
+      finally { setSaving(false); }
+    }
+
+    const ordered = Object.entries(data).sort((a, b) => (a[1].order ?? 99) - (b[1].order ?? 99));
+
+    return (
+      <>
+        <div className="tbl-toolbar">
+          <span className="count">{ordered.length} promotion{ordered.length === 1 ? '' : 's'}</span>
+          <button className="btn-primary" onClick={save} disabled={saving || loading}>{saving ? 'Saving...' : 'Save all'}</button>
+        </div>
+
+        <div className="promo-form">
+          {loading && <div className="empty-row">Loading...</div>}
+          {!loading && ordered.length === 0 && <div className="empty-row">No promotions configured.</div>}
+          {!loading && ordered.map(([id, entry]) => (
+            <div key={id} className="promo-card">
+              <div className="promo-card-head">
+                <span className="promo-card-id">{id}</span>
+                <label className="promo-toggle">
+                  <input
+                    type="checkbox"
+                    checked={entry.enabled !== false}
+                    onChange={(e) => updateField(id, 'enabled', e.target.checked)}
+                  />
+                  <span>{entry.enabled !== false ? 'Enabled' : 'Disabled (hidden from kit)'}</span>
+                </label>
+              </div>
+              <div className="row">
+                <label>Headline (max 80 chars)</label>
+                <input
+                  type="text"
+                  maxLength={80}
+                  value={entry.headline || ''}
+                  onChange={(e) => updateField(id, 'headline', e.target.value)}
+                  placeholder="e.g. 50 bonus credits at signup"
+                />
+                <div className="hint">{(entry.headline || '').length}/80</div>
+              </div>
+              <div className="row">
+                <label>Detail (max 200 chars, optional)</label>
+                <textarea
+                  maxLength={200}
+                  value={entry.detail || ''}
+                  onChange={(e) => updateField(id, 'detail', e.target.value)}
+                  placeholder="e.g. Double the default 25 credits."
+                />
+                <div className="hint">{(entry.detail || '').length}/200</div>
+              </div>
+              <div className="row" style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <label style={{ margin: 0 }}>Display order</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={99}
+                  value={entry.order ?? 99}
+                  onChange={(e) => updateField(id, 'order', parseInt(e.target.value, 10) || 99)}
+                  style={{ width: 80 }}
+                />
+              </div>
+            </div>
+          ))}
+          {err && <div className="err" style={{ marginTop: 12 }}>{err}</div>}
+        </div>
+      </>
+    );
+  }
+
   // ---------- Root ----------
   function App() {
     const [authed, setAuthed] = useState(() => !!getToken());
@@ -671,8 +768,11 @@
           <div className="tabs">
             <button className={tab === 'affiliates' ? 'active' : ''} onClick={() => setTab('affiliates')}>Affiliates</button>
             <button className={tab === 'cobranded' ? 'active' : ''} onClick={() => setTab('cobranded')}>Co-branded partners</button>
+            <button className={tab === 'promotions' ? 'active' : ''} onClick={() => setTab('promotions')}>Promotions</button>
           </div>
-          {tab === 'affiliates' ? <AffiliatesTab toast={push} /> : <CobrandedTab toast={push} />}
+          {tab === 'affiliates' && <AffiliatesTab toast={push} />}
+          {tab === 'cobranded' && <CobrandedTab toast={push} />}
+          {tab === 'promotions' && <PromotionsTab toast={push} />}
         </div>
         <ToastTray items={items} />
       </>

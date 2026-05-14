@@ -1,0 +1,20 @@
+{
+  "signup_bonus": {
+    "headline": "50 bonus credits at signup",
+    "detail": "Double the default 25 credits, just for using your referral link.",
+    "enabled": true,
+    "order": 1
+  },
+  "first_month_discount": {
+    "headline": "$50 off the first paid month",
+    "detail": "Applied automatically on Growth or Pro tier.",
+    "enabled": true,
+    "order": 2
+  },
+  "market_report": {
+    "headline": "Free Market Report on annual PRO upgrade",
+    "detail": "A bespoke trade-intelligence report, normally $500.",
+    "enabled": true,
+    "order": 3
+  }
+}

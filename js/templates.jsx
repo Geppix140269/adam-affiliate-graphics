@@ -196,10 +196,89 @@
   }
 
   // ------------------------------------------------------------------
+  // Promotions component — renders the "what your referrals get" list.
+  // Variant 'compact' (single line w/ separators), 'row' (horizontal cards),
+  // 'panel' (vertical stack).
+  // ------------------------------------------------------------------
+
+  function Promotions({ items, variant = 'compact', dark = false, accentColor }) {
+    if (!items || !items.length) return null;
+    const muted = dark ? 'rgba(238,243,250,0.65)' : 'rgba(15,27,45,0.65)';
+    const strong = dark ? PALETTE.white : PALETTE.ink;
+    const accent = accentColor || PALETTE.teal;
+
+    if (variant === 'compact') {
+      return (
+        <div style={{
+          fontFamily: TYPE.mono, fontSize: 11, color: muted,
+          letterSpacing: '0.08em', textTransform: 'uppercase',
+          display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'nowrap',
+          whiteSpace: 'nowrap', overflow: 'hidden',
+        }}>
+          {items.slice(0, 3).map((p, i) => (
+            <React.Fragment key={p.id}>
+              {i > 0 && <span style={{ color: accent, opacity: 0.6 }}>{MIDDOT}</span>}
+              <span style={{ color: strong, fontWeight: 500 }}>{p.headline}</span>
+            </React.Fragment>
+          ))}
+        </div>
+      );
+    }
+
+    if (variant === 'row') {
+      return (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(' + items.length + ', 1fr)', gap: 20 }}>
+          {items.map(p => (
+            <div key={p.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{
+                fontFamily: TYPE.mono, fontSize: 10, letterSpacing: '0.2em',
+                textTransform: 'uppercase', color: accent, fontWeight: 600,
+              }}>Perk</div>
+              <div style={{
+                fontFamily: TYPE.sans, fontSize: 16, fontWeight: 600,
+                color: strong, lineHeight: 1.25, letterSpacing: '-0.005em',
+              }}>{p.headline}</div>
+              {p.detail && <div style={{
+                fontFamily: TYPE.sans, fontSize: 12, color: muted, lineHeight: 1.4,
+              }}>{p.detail}</div>}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // variant === 'panel'
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {items.map(p => (
+          <div key={p.id} style={{
+            display: 'grid', gridTemplateColumns: '8px 1fr', gap: 12,
+            alignItems: 'baseline',
+          }}>
+            <div style={{
+              width: 8, height: 8, borderRadius: 999, background: accent,
+              transform: 'translateY(4px)',
+            }} />
+            <div>
+              <div style={{
+                fontSize: 14, fontWeight: 600, color: strong,
+                letterSpacing: '-0.005em', lineHeight: 1.3,
+              }}>{p.headline}</div>
+              {p.detail && <div style={{
+                fontSize: 12, fontWeight: 400, color: muted, lineHeight: 1.45, marginTop: 2,
+              }}>{p.detail}</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // ------------------------------------------------------------------
   // Artboards (15)
   // ------------------------------------------------------------------
 
-  function LinkedInBanner({ aff, dark = true, line, cobrand }) {
+  function LinkedInBanner({ aff, dark = true, line, cobrand, promos }) {
     const bg = dark ? PALETTE.ink : PALETTE.paper;
     const fg = dark ? PALETTE.white : PALETTE.ink;
     const muted = dark ? 'rgba(238,243,250,0.65)' : 'rgba(15,27,45,0.65)';
@@ -209,7 +288,12 @@
     return (
       <div style={{ width: 1584, height: 396, background: bg, position: 'relative', overflow: 'hidden', fontFamily: TYPE.sans, color: fg }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0 }}><GradientHairline h={3} /></div>
-        <div style={{ position: 'absolute', top: 28, left: 72, fontFamily: TYPE.mono, fontSize: 12, letterSpacing: '0.28em', textTransform: 'uppercase', color: muted, fontWeight: 500 }}>{BRAND_EYEBROW}</div>
+        <div style={{ position: 'absolute', top: 28, left: 72, right: 72, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+          <div style={{ fontFamily: TYPE.mono, fontSize: 12, letterSpacing: '0.28em', textTransform: 'uppercase', color: muted, fontWeight: 500 }}>{BRAND_EYEBROW}</div>
+          {promos && promos.length > 0 && (
+            <Promotions items={promos} variant="compact" dark={dark} accentColor={accent(cobrand)} />
+          )}
+        </div>
         <div style={{ position: 'absolute', inset: '56px 72px 40px 72px', display: 'grid', gridTemplateColumns: `${leftCol} 1px 1fr`, gap: 44, alignItems: 'stretch' }}>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 14 }}>
             <Brand width={brandW} cobrand={cobrand} inset={dark} padding={12} radius={10} bg={dark ? PALETTE.paper : 'transparent'} />
@@ -445,7 +529,7 @@
     );
   }
 
-  function ShareCard({ aff, dark = true, line, cobrand }) {
+  function ShareCard({ aff, dark = true, line, cobrand, promos }) {
     const bg = dark ? PALETTE.ink : PALETTE.paper;
     const fg = dark ? PALETTE.white : PALETTE.ink;
     const muted = dark ? 'rgba(238,243,250,0.6)' : 'rgba(15,27,45,0.6)';
@@ -464,6 +548,11 @@
             {pickHeadline(line, cobrand)}
           </div>
           <div style={{ marginTop: 28, fontSize: 28, fontWeight: 500, color: muted, letterSpacing: '-0.01em', maxWidth: 1100 }}>For SMEs, exporters, and the consultancies advising them. Not Bloomberg-tier budgets.</div>
+          {promos && promos.length > 0 && (
+            <div style={{ marginTop: 36, paddingTop: 24, borderTop: `1px solid ${ruleColor}`, maxWidth: 1400 }}>
+              <Promotions items={promos} variant="row" dark={dark} accentColor={accent(cobrand)} />
+            </div>
+          )}
         </div>
         <div style={{ position: 'absolute', bottom: 50, left: 80, right: 80, height: 220, paddingTop: 28, borderTop: `1px solid ${ruleColor}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 48, boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
@@ -504,7 +593,7 @@
     );
   }
 
-  function EmailBanner({ aff, dark = true, cobrand }) {
+  function EmailBanner({ aff, dark = true, cobrand, promos }) {
     const bg = dark ? PALETTE.ink : PALETTE.paper;
     const fg = dark ? PALETTE.white : PALETTE.ink;
     const ruleColor = dark ? 'rgba(238,243,250,0.18)' : 'rgba(15,27,45,0.15)';
@@ -522,7 +611,12 @@
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
             <div>
               <Eyebrow color={accent(cobrand)} size={12}>{'You' + RSQUO + 've been invited'}</Eyebrow>
-              <div style={{ marginTop: 14, fontSize: 36, fontWeight: 600, lineHeight: 1.08, letterSpacing: '-0.025em', color: fg, textWrap: 'balance', maxWidth: 720 }}>{aff.first_name} thinks ADAMftd can help your trade work.</div>
+              <div style={{ marginTop: 12, fontSize: 32, fontWeight: 600, lineHeight: 1.08, letterSpacing: '-0.025em', color: fg, textWrap: 'balance', maxWidth: 720 }}>{aff.first_name} thinks ADAMftd can help your trade work.</div>
+              {promos && promos.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <Promotions items={promos} variant="compact" dark={dark} accentColor={accent(cobrand)} />
+                </div>
+              )}
             </div>
             <CodeBlock aff={aff} dark={dark} size="md" cobrand={cobrand} />
           </div>
@@ -593,7 +687,7 @@
     );
   }
 
-  function A4OnePager({ aff, cobrand }) {
+  function A4OnePager({ aff, cobrand, promos }) {
     const ruleColor = 'rgba(15,27,45,0.10)';
     const muted = 'rgba(15,27,45,0.6)';
     const brandW = cobrand?.partner ? 540 : 300;
@@ -633,6 +727,20 @@
               </div>
             ))}
           </div>
+          {promos && promos.length > 0 && (
+            <div style={{
+              background: 'rgba(45,138,126,0.06)',
+              border: '1px solid rgba(45,138,126,0.2)',
+              borderRadius: 10, padding: '18px 22px',
+            }}>
+              <div style={{
+                fontFamily: TYPE.mono, fontSize: 10, letterSpacing: '0.22em',
+                textTransform: 'uppercase', color: accent(cobrand), fontWeight: 600,
+                marginBottom: 12,
+              }}>{'What you get when you sign up'}</div>
+              <Promotions items={promos} variant="panel" dark={false} accentColor={accent(cobrand)} />
+            </div>
+          )}
           <div style={{ flex: 1 }} />
           <div style={{ background: PALETTE.ink, color: PALETTE.white, borderRadius: 14, padding: '28px 32px', display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: 28, alignItems: 'center' }}>
             <div>
@@ -648,29 +756,30 @@
   }
 
   const ASSETS = [
-    { id: 'linkedin_banner',     label: 'LinkedIn banner',                w: 1584, h: 396,  Comp: LinkedInBanner,         useLine: true,  group: 'Cover rails (profile headers)' },
-    { id: 'x_header',            label: 'X header',                       w: 1500, h: 500,  Comp: XHeader,                useLine: true,  group: 'Cover rails (profile headers)' },
-    { id: 'facebook_cover',      label: 'Facebook cover',                 w: 820,  h: 312,  Comp: FacebookCover,                          group: 'Cover rails (profile headers)' },
-    { id: 'instagram_curiosity', label: 'IG / LI feed (curiosity)',       w: 1080, h: 1080, Comp: InstagramCuriosity,                     group: 'Feed posts (square)' },
-    { id: 'instagram_stats',     label: 'IG / LI feed (stats)',           w: 1080, h: 1080, Comp: InstagramStats,                         group: 'Feed posts (square)' },
-    { id: 'story_curiosity',     label: 'Story (curiosity)',              w: 1080, h: 1920, Comp: InstagramStoryCuriosity,                group: 'Stories (vertical)' },
-    { id: 'story_stats',         label: 'Story (stats)',                  w: 1080, h: 1920, Comp: InstagramStoryStats,                    group: 'Stories (vertical)' },
-    { id: 'share_card',          label: 'Share card (OG / X)',            w: 1600, h: 900,  Comp: ShareCard,              useLine: true,  group: 'Share card (OG / X)' },
-    { id: 'email_signature',     label: 'Email signature (light)',        w: 600,  h: 120,  Comp: EmailSignature,         forceLight: true, group: 'Email' },
-    { id: 'email_signature_dark',label: 'Email signature (dark)',         w: 600,  h: 120,  Comp: EmailSignature,         forceDark: true,  group: 'Email' },
-    { id: 'email_banner',        label: 'Email banner (newsletter hero)', w: 1200, h: 400,  Comp: EmailBanner,                            group: 'Email' },
-    { id: 'zoom_background',     label: 'Zoom / Meet virtual background', w: 1920, h: 1080, Comp: ZoomBackground,                         group: 'Virtual presence' },
-    { id: 'business_card_front', label: 'Business card (front)',          w: 1050, h: 600,  Comp: BusinessCardFront,      noDark: true,   group: 'Print' },
-    { id: 'business_card_back',  label: 'Business card (back)',           w: 1050, h: 600,  Comp: BusinessCardBack,       noDark: true,   group: 'Print' },
-    { id: 'a4_onepager',         label: 'A4 one-pager',                   w: 794,  h: 1123, Comp: A4OnePager,             noDark: true,   group: 'Print' },
+    { id: 'linkedin_banner',     label: 'LinkedIn banner',                w: 1584, h: 396,  Comp: LinkedInBanner,         useLine: true,  usePromos: true,  group: 'Cover rails (profile headers)' },
+    { id: 'x_header',            label: 'X header',                       w: 1500, h: 500,  Comp: XHeader,                useLine: true,                    group: 'Cover rails (profile headers)' },
+    { id: 'facebook_cover',      label: 'Facebook cover',                 w: 820,  h: 312,  Comp: FacebookCover,                                            group: 'Cover rails (profile headers)' },
+    { id: 'instagram_curiosity', label: 'IG / LI feed (curiosity)',       w: 1080, h: 1080, Comp: InstagramCuriosity,                                       group: 'Feed posts (square)' },
+    { id: 'instagram_stats',     label: 'IG / LI feed (stats)',           w: 1080, h: 1080, Comp: InstagramStats,                                           group: 'Feed posts (square)' },
+    { id: 'story_curiosity',     label: 'Story (curiosity)',              w: 1080, h: 1920, Comp: InstagramStoryCuriosity,                                  group: 'Stories (vertical)' },
+    { id: 'story_stats',         label: 'Story (stats)',                  w: 1080, h: 1920, Comp: InstagramStoryStats,                                      group: 'Stories (vertical)' },
+    { id: 'share_card',          label: 'Share card (OG / X)',            w: 1600, h: 900,  Comp: ShareCard,              useLine: true,  usePromos: true,  group: 'Share card (OG / X)' },
+    { id: 'email_signature',     label: 'Email signature (light)',        w: 600,  h: 120,  Comp: EmailSignature,         forceLight: true,                 group: 'Email' },
+    { id: 'email_signature_dark',label: 'Email signature (dark)',         w: 600,  h: 120,  Comp: EmailSignature,         forceDark: true,                  group: 'Email' },
+    { id: 'email_banner',        label: 'Email banner (newsletter hero)', w: 1200, h: 400,  Comp: EmailBanner,                            usePromos: true,  group: 'Email' },
+    { id: 'zoom_background',     label: 'Zoom / Meet virtual background', w: 1920, h: 1080, Comp: ZoomBackground,                                           group: 'Virtual presence' },
+    { id: 'business_card_front', label: 'Business card (front)',          w: 1050, h: 600,  Comp: BusinessCardFront,      noDark: true,                     group: 'Print' },
+    { id: 'business_card_back',  label: 'Business card (back)',           w: 1050, h: 600,  Comp: BusinessCardBack,       noDark: true,                     group: 'Print' },
+    { id: 'a4_onepager',         label: 'A4 one-pager',                   w: 794,  h: 1123, Comp: A4OnePager,             noDark: true,   usePromos: true,  group: 'Print' },
   ];
 
-  function Artboard({ asset, aff, dark, line, scale, cobrand }) {
+  function Artboard({ asset, aff, dark, line, scale, cobrand, promos }) {
     const ref = useRef(null);
     const { Comp, w, h } = asset;
     const compProps = { aff, cobrand };
     if (!asset.noDark) compProps.dark = asset.forceLight ? false : asset.forceDark ? true : dark;
     if (asset.useLine) compProps.line = line;
+    if (asset.usePromos) compProps.promos = promos;
     return (
       <div className="artboard-wrap">
         <div className="artboard-meta">
