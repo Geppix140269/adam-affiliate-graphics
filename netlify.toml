@@ -1,0 +1,24 @@
+# Static site, no build step. Netlify serves the repo root.
+[build]
+  publish = "."
+  command = ""
+
+# Cache headers: HTML revalidates on every load, data + assets cached.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=60, stale-while-revalidate=600"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, immutable"
+
+# When you add kit.adamftd.com as the custom domain in the Netlify dashboard,
+# tick "Use kit.adamftd.com as primary domain" so the old *.netlify.app URL
+# 301-redirects automatically. No code-side redirect needed.

@@ -1,0 +1,148 @@
+/* ADAMftd Partner Kit — design system styles */
+:root {
+  --ink: #0F1B2D;
+  --ink2: #16263D;
+  --ink3: #1a2942;
+  --navy: #1F3A5F;
+  --slate: #5A6B85;
+  --teal: #2D8A7E;
+  --teal-hi: #3FB5A4;
+  --paper: #FAF6EE;
+  --cream: #F4ECDC;
+  --soft: #EEF3FA;
+  --canvas: #f0eee9;
+}
+
+html, body { margin: 0; padding: 0; background: var(--canvas); font-family: "Inter", system-ui, sans-serif; color: var(--ink); }
+* { box-sizing: border-box; }
+.boot { padding: 80px; text-align: center; color: rgba(15,27,45,0.55); font-family: "JetBrains Mono", monospace; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; }
+
+/* ---------- Gate (landing) ---------- */
+.gate {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px;
+}
+.gate-card {
+  width: 100%; max-width: 560px;
+  background: #fff;
+  border: 1px solid rgba(15,27,45,0.08);
+  border-radius: 22px;
+  padding: 48px 48px 40px;
+  box-shadow: 0 24px 60px rgba(15,27,45,0.08);
+  position: relative; overflow: hidden;
+}
+.gate-card .grad {
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #2A9D8F 0%, #7AC74F 20%, #E29A2C 40%, #D04A3B 60%, #7A3F8F 80%, #1F6BA8 100%);
+}
+.gate-card .logo { width: 220px; height: auto; display: block; margin-bottom: 28px; }
+.gate-card h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.025em; margin: 0 0 10px; color: var(--ink); }
+.gate-card .sub { font-size: 15px; line-height: 1.55; color: rgba(15,27,45,0.65); margin: 0 0 28px; }
+.gate-card form { display: flex; gap: 10px; align-items: stretch; }
+.gate-card input {
+  flex: 1; min-width: 0;
+  background: var(--paper);
+  border: 1px solid rgba(15,27,45,0.14);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+  text-transform: lowercase;
+}
+.gate-card input:focus { border-color: var(--teal); background: #fff; }
+.gate-card button {
+  background: var(--teal); color: #fff; border: 0;
+  border-radius: 10px; padding: 0 22px;
+  font-family: "Inter", sans-serif; font-size: 14px; font-weight: 600;
+  letter-spacing: 0.02em; cursor: pointer; white-space: nowrap;
+}
+.gate-card button:hover { background: var(--teal-hi); }
+.gate-card button:disabled { opacity: 0.55; cursor: not-allowed; }
+.gate-card .error {
+  margin-top: 14px; padding: 12px 14px;
+  background: rgba(208,74,59,0.08);
+  border: 1px solid rgba(208,74,59,0.25);
+  border-radius: 8px;
+  color: #8B2C20; font-size: 13px; line-height: 1.45;
+}
+.gate-card .help { margin-top: 28px; font-size: 12px; color: rgba(15,27,45,0.55); line-height: 1.5; }
+.gate-card .help a { color: var(--teal); text-decoration: none; }
+.gate-card .help a:hover { text-decoration: underline; }
+
+/* ---------- Toolbar (post-gate) ---------- */
+.toolbar { position: sticky; top: 0; z-index: 100; background: var(--ink); color: #fff; padding: 16px 28px; box-shadow: 0 4px 18px rgba(0,0,0,0.2); }
+.toolbar-inner { display: grid; grid-template-columns: 1fr auto auto auto; gap: 16px; align-items: center; max-width: 1600px; margin: 0 auto; }
+.toolbar .who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.toolbar .who-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; font-family: "JetBrains Mono", monospace; color: rgba(255,255,255,0.5); font-weight: 500; }
+.toolbar .who-name { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: -0.005em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toolbar .who-code { font-family: "JetBrains Mono", monospace; font-size: 12px; color: rgba(255,255,255,0.65); }
+
+.toolbar .field { display: flex; flex-direction: column; gap: 6px; }
+.toolbar .field label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; font-family: "JetBrains Mono", monospace; color: rgba(255,255,255,0.55); font-weight: 500; }
+.toolbar .field select, .toolbar .field input { background: var(--ink3); color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 8px 11px; font-family: "Inter", sans-serif; font-size: 13px; outline: none; min-width: 280px; }
+.toolbar .field input.code { font-family: "JetBrains Mono", monospace; text-transform: lowercase; min-width: 200px; }
+.toolbar .field select:focus, .toolbar .field input:focus { border-color: var(--teal-hi); }
+
+.btn { background: var(--teal); color: #fff; border: none; border-radius: 6px; padding: 10px 16px; font-family: "Inter", sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--teal-hi); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn.secondary { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.85); }
+.btn.secondary:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.4); }
+
+.pill { display: inline-flex; gap: 0; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; overflow: hidden; }
+.pill button { background: transparent; border: 0; color: rgba(255,255,255,0.6); padding: 8px 14px; font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; }
+.pill button.active { background: var(--teal); color: #fff; }
+
+.admin-banner { background: rgba(255,200,40,0.12); color: #fff; padding: 8px 28px; font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.admin-row { grid-column: 1 / -1; display: flex; gap: 14px; flex-wrap: wrap; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.12); margin-top: 4px; }
+
+/* ---------- Progress overlay (zip) ---------- */
+.progress-overlay {
+  position: fixed; inset: 0; background: rgba(15,27,45,0.78);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(6px);
+}
+.progress-card {
+  background: #fff; border-radius: 16px; padding: 36px 44px;
+  width: 460px; max-width: calc(100vw - 48px);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+}
+.progress-card .label { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal); font-weight: 500; margin-bottom: 10px; }
+.progress-card .stage { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink); margin-bottom: 22px; }
+.progress-card .bar { height: 8px; background: rgba(15,27,45,0.08); border-radius: 999px; overflow: hidden; }
+.progress-card .bar-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--teal-hi)); transition: width 0.3s ease; border-radius: 999px; }
+.progress-card .count { margin-top: 12px; font-family: "JetBrains Mono", monospace; font-size: 12px; color: rgba(15,27,45,0.55); }
+
+/* ---------- Welcome block ---------- */
+.welcome { background: #fff; border: 1px solid rgba(15,27,45,0.08); border-radius: 16px; padding: 28px 32px; margin: 32px 0 0; max-width: 1600px; }
+.welcome-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+.welcome-head h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.018em; color: var(--ink); }
+.welcome-head button { background: transparent; border: 0; color: rgba(15,27,45,0.5); cursor: pointer; font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; padding: 6px 10px; }
+.welcome-head button:hover { color: var(--ink); }
+.welcome p { margin: 6px 0; line-height: 1.55; color: rgba(15,27,45,0.78); font-size: 14px; }
+.welcome ol { margin: 14px 0 18px; padding-left: 20px; color: rgba(15,27,45,0.78); font-size: 14px; line-height: 1.6; }
+.welcome ol li { margin-bottom: 4px; }
+.welcome .rules-head { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal); font-weight: 500; margin: 18px 0 8px; }
+.welcome .rules { margin: 0; padding-left: 20px; color: rgba(15,27,45,0.78); font-size: 14px; line-height: 1.55; }
+.welcome .rules li { margin-bottom: 6px; }
+.welcome .rules code { font-family: "JetBrains Mono", monospace; background: var(--paper); padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--ink); }
+.welcome .track { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(15,27,45,0.08); font-size: 13px; color: rgba(15,27,45,0.65); }
+.welcome .track a { color: var(--teal); text-decoration: none; font-weight: 500; }
+.welcome .track a:hover { text-decoration: underline; }
+
+.show-welcome-pill { display: inline-flex; gap: 8px; align-items: center; margin: 20px 0 0; padding: 8px 14px; background: #fff; border: 1px solid rgba(15,27,45,0.12); border-radius: 999px; font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(15,27,45,0.6); cursor: pointer; }
+.show-welcome-pill:hover { color: var(--ink); border-color: rgba(15,27,45,0.25); }
+
+/* ---------- Canvas + artboards ---------- */
+.canvas { padding: 28px 28px 80px; max-width: 1600px; margin: 0 auto; }
+.section { margin-top: 48px; }
+.section-header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(15,27,45,0.12); }
+.section-header h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink); }
+.artboard-wrap { margin-bottom: 22px; background: rgba(15,27,45,0.04); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.artboard-meta { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.artboard-label { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(15,27,45,0.6); }
+.artboard-scaler { background: #fff; border-radius: 8px; box-shadow: 0 1px 0 rgba(15,27,45,0.06); overflow: hidden; }
+.artboard-frame { transform-origin: top left; }

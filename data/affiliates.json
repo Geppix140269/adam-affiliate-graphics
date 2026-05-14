@@ -1,0 +1,22 @@
+{
+  "davidecollu":             { "first_name": "Davide",   "full_name": "Davide Collu" },
+  "isrmp-org":               { "first_name": "Ron",      "full_name": "Ron Mathews" },
+  "upal-outdoors":           { "first_name": "Alex",     "full_name": "Alex Beaune" },
+  "scanmed":                 { "first_name": "Daniel",   "full_name": "Daniel Christensen" },
+  "sdotjhospitality":        { "first_name": "Sushant",  "full_name": "Sushant Pradhan" },
+  "agromax-ng":              { "first_name": "AgroMax",  "full_name": "AgroMax" },
+  "buddystore-my":           { "first_name": "Vincent",  "full_name": "Vincent Yong" },
+  "sl-employers-federation": { "first_name": "Oness",    "full_name": "Oness Cooray" },
+  "groupecanal":             { "first_name": "James",    "full_name": "James Kandanga" },
+  "rrd-invest":              { "first_name": "Richard",  "full_name": "Richard Rieger" },
+  "future-tend":             { "first_name": "Etienne",  "full_name": "Etienne Chazal" },
+  "harryweber":              { "first_name": "Harry",    "full_name": "Harry Weber" },
+  "intishartours":           { "first_name": "Nadir",    "full_name": "Nadir Sebai" },
+  "yellowmay":               { "first_name": "Jussi",    "full_name": "Jussi Hyytiainen" },
+  "msmeworld":               { "first_name": "JD",       "full_name": "JD Sharma" },
+  "rizwan-pk":               { "first_name": "Muhammad", "full_name": "Muhammad Rizwan" },
+  "tarisa":                  { "first_name": "Dipendu",  "full_name": "Dipendu Biswas" },
+  "flexcap-au":              { "first_name": "Rodney",   "full_name": "Rodney Schiller" },
+  "ramporrt":                { "first_name": "Preyan",   "full_name": "Preyan Doolur" },
+  "1402celsius":             { "first_name": "Giuseppe", "full_name": "Giuseppe Funaro" }
+}
