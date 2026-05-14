@@ -6,6 +6,8 @@ export const CODE_RE = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 export const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
 // Access keys are base64url, 16 chars from 12 bytes. ~96 bits of entropy.
 export const ACCESS_KEY_RE = /^[A-Za-z0-9_-]{16,64}$/;
+// E.164: optional + and 1-15 digits. We require the leading + for clarity.
+export const E164_RE = /^\+[1-9]\d{1,14}$/;
 
 export function isValidCode(s) {
   return typeof s === 'string' && CODE_RE.test(s) && !s.includes('--');
@@ -17,6 +19,18 @@ export function isValidHex(s) {
 
 export function isValidAccessKey(s) {
   return typeof s === 'string' && ACCESS_KEY_RE.test(s);
+}
+
+export function isValidE164(s) {
+  return typeof s === 'string' && E164_RE.test(s);
+}
+
+// Loose normaliser: strips spaces, dashes, parens. Doesn't validate.
+export function normaliseE164(raw) {
+  if (!raw) return '';
+  const s = String(raw).replace(/[\s\-().]/g, '');
+  if (!s) return '';
+  return s.startsWith('+') ? s : ('+' + s.replace(/^0+/, ''));
 }
 
 // 16 chars of url-safe random. ~96 bits of entropy, comfortably unguessable.

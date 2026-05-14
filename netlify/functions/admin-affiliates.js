@@ -8,10 +8,14 @@
 
 import { requireAuth } from './_lib/auth.js';
 import { getAffiliates, setAffiliates, nowIso } from './_lib/blob.js';
-import { isValidCode, normaliseCode, trimToLen, generateAccessKey } from './_lib/validation.js';
+import { isValidCode, normaliseCode, trimToLen, generateAccessKey, isValidE164, normaliseE164 } from './_lib/validation.js';
 import { resp, methodNotAllowed, parseJson } from './_lib/resp.js';
 
 const STATUSES = new Set(['active', 'suspended']);
+
+function existing(data, code, field) {
+  return data[code] ? data[code][field] : undefined;
+}
 
 function sanitiseFields(input, existing) {
   const first_name = trimToLen(input.first_name ?? existing?.first_name, 80);
@@ -19,24 +23,82 @@ function sanitiseFields(input, existing) {
   const notes      = trimToLen(input.notes      ?? existing?.notes ?? '', 1000);
   let status = String(input.status ?? existing?.status ?? 'active').toLowerCase();
   if (!STATUSES.has(status)) status = 'active';
-  return { first_name, full_name, status, notes };
+
+  // mobile_e164: optional; if provided, normalise + validate. Empty string = clear.
+  let mobile_e164 = input.mobile_e164 !== undefined ? input.mobile_e164 : existing?.mobile_e164;
+  if (mobile_e164 === null || mobile_e164 === undefined) mobile_e164 = '';
+  mobile_e164 = String(mobile_e164).trim();
+  if (mobile_e164) {
+    mobile_e164 = normaliseE164(mobile_e164);
+    if (!isValidE164(mobile_e164)) {
+      mobile_e164 = String(input.mobile_e164 ?? existing?.mobile_e164 ?? '').trim();
+      // If still invalid, blow up — caller catches via validateRequired
+    }
+  }
+
+  const wa_validated = input.wa_validated !== undefined
+    ? !!input.wa_validated
+    : !!existing?.wa_validated;
+
+  return { first_name, full_name, status, notes, mobile_e164, wa_validated };
 }
 
 function validateRequired(fields) {
   if (!fields.first_name) return 'First name is required.';
   if (!fields.full_name)  return 'Full name is required.';
+  if (fields.mobile_e164 && !isValidE164(fields.mobile_e164)) {
+    return 'Mobile number must be in E.164 format, e.g. +447988540154.';
+  }
   return null;
 }
 
+// Header-aware CSV parser. Recognises columns: code, first_name, full_name,
+// mobile_e164 (also accepts: phone, mobile, whatsapp). If no header is
+// detected, falls back to positional: code, first_name, full_name.
 function parseCsvRows(csv) {
   const rows = [];
   const lines = String(csv || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   if (!lines.length) return rows;
-  let start = 0;
-  const first = lines[0].toLowerCase();
-  if (first.startsWith('code,') || first.startsWith('"code"')) start = 1;
-  for (let i = start; i < lines.length; i++) {
-    const parts = lines[i].split(',').map(s => s.replace(/^"|"$/g, '').trim());
+
+  function splitCells(line) {
+    // Naive CSV (no escaped commas inside quotes for now — keep parser small)
+    return line.split(',').map(s => s.replace(/^"|"$/g, '').trim());
+  }
+
+  const headerCells = splitCells(lines[0]).map(s => s.toLowerCase());
+  const hasHeader = headerCells.includes('code') ||
+                    headerCells[0] === 'code' ||
+                    headerCells[0] === '"code"';
+
+  if (hasHeader) {
+    const idx = (...names) => {
+      for (const n of names) {
+        const i = headerCells.indexOf(n);
+        if (i >= 0) return i;
+      }
+      return -1;
+    };
+    const iCode      = idx('code');
+    const iFirst     = idx('first_name', 'firstname', 'first');
+    const iFull      = idx('full_name', 'fullname', 'name');
+    const iPhone     = idx('mobile_e164', 'phone', 'mobile', 'whatsapp', 'wa');
+    if (iCode < 0) return rows;
+    for (let i = 1; i < lines.length; i++) {
+      const cells = splitCells(lines[i]);
+      const row = {
+        code: cells[iCode] ?? '',
+        first_name: iFirst >= 0 ? cells[iFirst] ?? '' : '',
+        full_name:  iFull  >= 0 ? cells[iFull]  ?? '' : '',
+      };
+      if (iPhone >= 0 && cells[iPhone]) row.mobile_e164 = cells[iPhone];
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  // Positional fallback
+  for (let i = 0; i < lines.length; i++) {
+    const parts = splitCells(lines[i]);
     if (parts.length < 3) continue;
     rows.push({ code: parts[0], first_name: parts[1], full_name: parts[2] });
   }
@@ -94,14 +156,22 @@ async function handle(req) {
           const fn = trimToLen(r.first_name, 80);
           const ln = trimToLen(r.full_name, 120);
           if (!fn || !ln) { skipped++; skippedDetail.push({ code, reason: 'missing name' }); continue; }
-          const existing = data[code];
+          let phone = existing(data, code, 'mobile_e164');
+          if (r.mobile_e164) {
+            const p = normaliseE164(r.mobile_e164);
+            if (p && isValidE164(p)) phone = p;
+            else { skippedDetail.push({ code, reason: 'invalid mobile_e164 (kept previous)' }); }
+          }
+          const ex = data[code];
           data[code] = {
             first_name: fn,
             full_name: ln,
-            status: existing?.status || 'active',
-            notes: existing?.notes || '',
-            access_key: existing?.access_key || generateAccessKey(),
-            created_at: existing?.created_at || now,
+            status: ex?.status || 'active',
+            notes: ex?.notes || '',
+            mobile_e164: phone || '',
+            wa_validated: !!ex?.wa_validated,
+            access_key: ex?.access_key || generateAccessKey(),
+            created_at: ex?.created_at || now,
             updated_at: now,
           };
           imported++;

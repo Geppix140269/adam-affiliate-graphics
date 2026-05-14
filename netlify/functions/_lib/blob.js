@@ -39,6 +39,8 @@ function enrichAffiliateSeed(seed) {
       full_name: entry.full_name || '',
       status: entry.status || 'active',
       notes: entry.notes || '',
+      mobile_e164: entry.mobile_e164 || '',
+      wa_validated: !!entry.wa_validated,
       access_key: entry.access_key || generateAccessKey(),
       created_at: entry.created_at || now,
       updated_at: entry.updated_at || now,
@@ -117,10 +119,10 @@ export async function getAffiliates() {
   const data = await readBlob(KEY_AFFILIATES, enrichAffiliateSeed, 'affiliates.json');
   let mutated = false;
   for (const entry of Object.values(data)) {
-    if (!entry.access_key) {
-      entry.access_key = generateAccessKey();
-      mutated = true;
-    }
+    if (!entry.access_key) { entry.access_key = generateAccessKey(); mutated = true; }
+    // Lazy schema migration for fields added in v2.3
+    if (entry.mobile_e164 === undefined) { entry.mobile_e164 = ''; mutated = true; }
+    if (entry.wa_validated === undefined) { entry.wa_validated = false; mutated = true; }
   }
   if (mutated) {
     try { await writeBlob(KEY_AFFILIATES, data); } catch (_) { /* non-fatal */ }

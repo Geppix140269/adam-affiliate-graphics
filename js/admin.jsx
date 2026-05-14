@@ -151,6 +151,8 @@
     const [fullName, setFullName] = useState(editing?.full_name || '');
     const [status, setStatus] = useState(editing?.status || 'active');
     const [notes, setNotes] = useState(editing?.notes || '');
+    const [mobile, setMobile] = useState(editing?.mobile_e164 || '');
+    const [waValidated, setWaValidated] = useState(!!editing?.wa_validated);
     const [accessKey, setAccessKey] = useState(editing?.access_key || '');
     const [err, setErr] = useState(null);
     const [busy, setBusy] = useState(false);
@@ -164,7 +166,15 @@
         if (!c) throw new Error('Code is required.');
         if (!firstName.trim()) throw new Error('First name is required.');
         if (!fullName.trim()) throw new Error('Full name is required.');
-        const body = { code: c, first_name: firstName.trim(), full_name: fullName.trim(), status, notes: notes.trim() };
+        const body = {
+          code: c,
+          first_name: firstName.trim(),
+          full_name: fullName.trim(),
+          status,
+          notes: notes.trim(),
+          mobile_e164: mobile.trim(),
+          wa_validated: !!waValidated,
+        };
         if (isNew) {
           const r = await apiCall('/api/admin/affiliates', { method: 'POST', body });
           // Newly created — show the access key prominently so admin can copy it
@@ -219,6 +229,27 @@
         <div className="row">
           <label>Full name</label>
           <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Davide Collu" />
+        </div>
+        <div className="row">
+          <label>Mobile (E.164, optional, e.g. +447988540154)</label>
+          <input
+            type="text"
+            className="mono"
+            value={mobile}
+            onChange={(e) => setMobile(e.target.value)}
+            placeholder="+44..."
+          />
+          <div className="hint">Used for the affiliate WhatsApp group. Must start with + and country code.</div>
+        </div>
+        <div className="row" style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <input
+            type="checkbox"
+            id="wa-validated-cb"
+            checked={waValidated}
+            onChange={(e) => setWaValidated(e.target.checked)}
+            style={{ width: 16, height: 16, cursor: 'pointer' }}
+          />
+          <label htmlFor="wa-validated-cb" style={{ margin: 0, cursor: 'pointer' }}>WhatsApp validated (internal flag)</label>
         </div>
         <div className="row">
           <label>Status</label>
@@ -418,11 +449,24 @@
     }
 
     function exportCsv() {
-      const headers = ['code', 'first_name', 'full_name', 'status', 'access_key', 'personal_url'];
+      const headers = [
+        'code', 'first_name', 'full_name', 'status',
+        'mobile_e164', 'wa_validated',
+        'access_key', 'personal_url',
+      ];
       const lines = [headers.join(',')];
       for (const [code, e] of Object.entries(data)) {
         const url = e.access_key ? personalUrl(e.access_key) : '';
-        const row = [code, e.first_name || '', e.full_name || '', e.status || 'active', e.access_key || '', url].map(s => {
+        const row = [
+          code,
+          e.first_name || '',
+          e.full_name || '',
+          e.status || 'active',
+          e.mobile_e164 || '',
+          e.wa_validated ? 'true' : 'false',
+          e.access_key || '',
+          url,
+        ].map(s => {
           const v = String(s);
           return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
         });
@@ -436,6 +480,24 @@
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       toast('ok', 'Exported ' + Object.keys(data).length + ' rows');
+    }
+
+    const [migBusy, setMigBusy] = useState(false);
+    const [migResult, setMigResult] = useState(null);
+
+    async function runMigration() {
+      if (!confirm('Apply the v3 roster sync? Updates 14 names + creates up to 5 affiliates if missing (itc2026, valteo, aacc, futuretend-elmarie, abwci). Safe to run twice.')) return;
+      setMigBusy(true); setMigResult(null);
+      try {
+        const r = await apiCall('/api/admin/migrate', {
+          method: 'POST',
+          body: { migration_id: 'v3-roster-sync-2026-05-14' },
+        });
+        setMigResult(r);
+        toast('ok', 'Migration applied. ' + r.summary.names_changed + ' names changed, ' + r.summary.affiliates_created + ' affiliates created.');
+        load();
+      } catch (e) { toast('err', e.message); }
+      finally { setMigBusy(false); }
     }
 
     async function importCsv() {
@@ -456,8 +518,46 @@
           <span className="count">{rows.length} of {Object.keys(data).length}</span>
           <button className="btn-secondary" onClick={exportCsv}>Export CSV</button>
           <button className="btn-secondary" onClick={() => setCsvOpen(!csvOpen)}>{csvOpen ? 'Hide CSV import' : 'Bulk CSV import'}</button>
+          <button className="btn-secondary" onClick={runMigration} disabled={migBusy}>{migBusy ? 'Running...' : 'Apply v3 roster sync'}</button>
           <button className="btn-primary" onClick={() => setEditing({ __new: true })}>+ Add affiliate</button>
         </div>
+
+        {migResult && (
+          <div className="csv-panel">
+            <h3>Migration applied: {migResult.migration_id}</h3>
+            <p className="sub">
+              {migResult.summary.names_changed} names changed,
+              &nbsp;{migResult.summary.names_already_correct} already correct,
+              &nbsp;{migResult.summary.affiliates_created} affiliates created,
+              &nbsp;{migResult.summary.affiliates_already_existed} already existed.
+              &nbsp;abwci co-branded: <strong>{migResult.cobranded_abwci}</strong>.
+            </p>
+            {migResult.created && migResult.created.length > 0 && (
+              <>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--teal)', fontWeight: 600, margin: '14px 0 8px' }}>
+                  New personal URLs (copy these and send to the affiliates)
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {migResult.created.map(c => (
+                    <div key={c.code} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, background: 'var(--paper)', borderRadius: 8, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, wordBreak: 'break-all' }}>
+                      <span style={{ flex: '0 0 200px', fontWeight: 600 }}>{c.code}</span>
+                      <span style={{ flex: 1, color: 'rgba(15,27,45,0.7)' }}>{personalUrl(c.access_key)}</span>
+                      <button type="button" className="btn-secondary" onClick={() => copyToClipboard(personalUrl(c.access_key), toast, c.code + ' personal URL')}>Copy</button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            {migResult.missing_codes && migResult.missing_codes.length > 0 && (
+              <div className="err" style={{ marginTop: 12 }}>
+                Update target not in blob (skipped): {migResult.missing_codes.join(', ')}
+              </div>
+            )}
+            <div className="actions">
+              <button className="btn-secondary" onClick={() => setMigResult(null)}>Dismiss</button>
+            </div>
+          </div>
+        )}
 
         {csvOpen && (
           <div className="csv-panel">
@@ -480,6 +580,7 @@
               <th>Code</th>
               <th>First name</th>
               <th>Full name</th>
+              <th>Mobile (E.164)</th>
               <th>Access</th>
               <th>Status</th>
               <th>Last modified</th>
@@ -487,13 +588,17 @@
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={7} className="empty-row">Loading...</td></tr>}
-            {!loading && rows.length === 0 && <tr><td colSpan={7} className="empty-row">No affiliates match your search.</td></tr>}
+            {loading && <tr><td colSpan={8} className="empty-row">Loading...</td></tr>}
+            {!loading && rows.length === 0 && <tr><td colSpan={8} className="empty-row">No affiliates match your search.</td></tr>}
             {!loading && rows.map((r) => (
               <tr key={r.code}>
                 <td className="mono">{r.code}</td>
                 <td>{r.first_name}</td>
                 <td>{r.full_name}</td>
+                <td className="mono" style={{ color: r.mobile_e164 ? 'var(--ink)' : 'rgba(15,27,45,0.4)' }}>
+                  {r.mobile_e164 || <span title="No phone on file">—</span>}
+                  {r.wa_validated && <span title="WhatsApp validated" style={{ marginLeft: 6, color: 'var(--teal)' }}>✓</span>}
+                </td>
                 <td className="mono key-cell">
                   {r.access_key
                     ? <span title="Access key (truncated for privacy)">•••{String(r.access_key).slice(-4)}</span>
