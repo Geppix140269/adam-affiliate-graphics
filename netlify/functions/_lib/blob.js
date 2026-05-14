@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getStore } from '@netlify/blobs';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __here = path.dirname(fileURLToPath(import.meta.url));
 
 const STORE_NAME = 'config';
 const KEY_AFFILIATES = 'affiliates';
@@ -15,7 +15,7 @@ const KEY_COBRANDED = 'cobranded_partners';
 function readSeedFile(filename) {
   try {
     const candidates = [
-      path.join(__dirname, '..', '..', '..', 'data', filename),
+      path.join(__here, '..', '..', '..', 'data', filename),
       path.join(process.cwd(), 'data', filename),
     ];
     for (const p of candidates) {
