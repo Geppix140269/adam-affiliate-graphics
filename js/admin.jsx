@@ -417,6 +417,27 @@
       finally { setDeleteBusy(false); }
     }
 
+    function exportCsv() {
+      const headers = ['code', 'first_name', 'full_name', 'status', 'access_key', 'personal_url'];
+      const lines = [headers.join(',')];
+      for (const [code, e] of Object.entries(data)) {
+        const url = e.access_key ? personalUrl(e.access_key) : '';
+        const row = [code, e.first_name || '', e.full_name || '', e.status || 'active', e.access_key || '', url].map(s => {
+          const v = String(s);
+          return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+        });
+        lines.push(row.join(','));
+      }
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'adamftd_affiliates_' + new Date().toISOString().slice(0, 10) + '.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast('ok', 'Exported ' + Object.keys(data).length + ' rows');
+    }
+
     async function importCsv() {
       setCsvBusy(true); setCsvSummary(null);
       try {
@@ -433,6 +454,7 @@
         <div className="tbl-toolbar">
           <input className="search" placeholder="Search by code or name..." value={search} onChange={(e) => setSearch(e.target.value)} />
           <span className="count">{rows.length} of {Object.keys(data).length}</span>
+          <button className="btn-secondary" onClick={exportCsv}>Export CSV</button>
           <button className="btn-secondary" onClick={() => setCsvOpen(!csvOpen)}>{csvOpen ? 'Hide CSV import' : 'Bulk CSV import'}</button>
           <button className="btn-primary" onClick={() => setEditing({ __new: true })}>+ Add affiliate</button>
         </div>
