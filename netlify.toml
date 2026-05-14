@@ -1,9 +1,50 @@
-# Static site, no build step. Netlify serves the repo root.
+# ADAMftd Partner Kit — Netlify deploy config
+# Static site + Functions for /api/admin/* and /api/data
+
 [build]
   publish = "."
-  command = ""
+  functions = "netlify/functions"
+  # No build command — static files are served as-is. Functions are auto-bundled.
 
-# Cache headers: HTML revalidates on every load, data + assets cached.
+[functions]
+  node_bundler = "esbuild"
+
+# ---------- API routing ----------
+# Public read (generator hits this on load)
+[[redirects]]
+  from = "/api/data"
+  to = "/.netlify/functions/public-data"
+  status = 200
+
+# Admin auth
+[[redirects]]
+  from = "/api/admin/login"
+  to = "/.netlify/functions/admin-login"
+  status = 200
+
+# Admin CRUD
+[[redirects]]
+  from = "/api/admin/affiliates"
+  to = "/.netlify/functions/admin-affiliates"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/cobranded"
+  to = "/.netlify/functions/admin-cobranded"
+  status = 200
+
+# ---------- Admin page (pretty URL) ----------
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin.html"
+  status = 200
+
+# ---------- Cache headers ----------
 [[headers]]
   for = "/*.html"
   [headers.values]
@@ -19,6 +60,8 @@
   [headers.values]
     Cache-Control = "public, max-age=86400, immutable"
 
-# When you add kit.adamftd.com as the custom domain in the Netlify dashboard,
-# tick "Use kit.adamftd.com as primary domain" so the old *.netlify.app URL
-# 301-redirects automatically. No code-side redirect needed.
+# Block search indexing of the admin route
+[[headers]]
+  for = "/admin*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"

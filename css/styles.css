@@ -146,3 +146,23 @@ html, body { margin: 0; padding: 0; background: var(--canvas); font-family: "Int
 .artboard-label { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(15,27,45,0.6); }
 .artboard-scaler { background: #fff; border-radius: 8px; box-shadow: 0 1px 0 rgba(15,27,45,0.06); overflow: hidden; }
 .artboard-frame { transform-origin: top left; }
+
+/* ---------- Co-brand setup strip ---------- */
+.cobrand-strip { background: #fff; border-bottom: 1px solid rgba(15,27,45,0.08); padding: 20px 28px; max-width: none; }
+.cobrand-strip-head { display: flex; align-items: baseline; gap: 14px; max-width: 1600px; margin: 0 auto 12px; }
+.cobrand-label { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--teal); font-weight: 600; }
+.cobrand-hint { font-size: 13px; color: rgba(15,27,45,0.6); }
+.cobrand-hint strong { color: var(--ink); font-weight: 600; }
+.cobrand-fields { display: flex; gap: 18px; max-width: 1600px; margin: 0 auto; align-items: flex-start; flex-wrap: wrap; }
+.cobrand-field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 220px; }
+.cobrand-field label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; font-family: "JetBrains Mono", monospace; color: rgba(15,27,45,0.55); font-weight: 500; }
+.cobrand-field input[type="text"] { background: var(--paper); border: 1px solid rgba(15,27,45,0.14); border-radius: 6px; padding: 9px 11px; font-family: "Inter", sans-serif; font-size: 14px; outline: none; }
+.cobrand-field input[type="text"]:focus { border-color: var(--teal); background: #fff; }
+.cobrand-help { font-family: "JetBrains Mono", monospace; font-size: 10px; color: rgba(15,27,45,0.5); }
+.cobrand-logo-field { flex: 1.2; }
+.cobrand-drop { background: var(--paper); border: 1px dashed rgba(15,27,45,0.25); border-radius: 8px; padding: 14px; min-height: 88px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; color: rgba(15,27,45,0.55); text-align: center; }
+.cobrand-drop:hover { border-color: var(--teal); color: var(--ink); }
+.cobrand-drop img { max-width: 100%; max-height: 80px; height: auto; display: block; }
+.cobrand-error { margin-top: 10px; padding: 10px 12px; background: rgba(208,74,59,0.08); border: 1px solid rgba(208,74,59,0.25); border-radius: 6px; color: #8B2C20; font-size: 12px; max-width: 1600px; margin-left: auto; margin-right: auto; }
+.link-btn { background: transparent; border: 0; color: var(--teal); font-family: "JetBrains Mono", monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; padding: 4px 0; cursor: pointer; text-align: left; }
+.link-btn:hover { text-decoration: underline; }

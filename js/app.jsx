@@ -1,65 +1,62 @@
 /*
  * ADAMftd Partner Kit — application shell.
  *
- * Upgrade map (see brief):
- *  1. Code-gate + auto-fill via data/affiliates.json
- *     - Admin override: ?admin=1 (or ?admin=<ADMIN_KEY> if set)
- *  2. Real ZIP via JSZip
- *  3. Co-branded mode — DEFERRED to follow-up PR
- *  4. kit.adamftd.com hard-coded as canonical URL in copy
- *  5. Welcome / "How to use" block
+ * v2.1 changes:
+ *  - Data now comes from /api/data (Netlify Function backed by Blobs).
+ *  - Falls back to static data/*.json for local `python -m http.server` dev.
+ *  - Co-branded toggle becomes visible IFF the affiliate's code is also
+ *    present in the cobranded whitelist. Standard affiliates never see it.
+ *  - Co-brand setup strip: partner logo upload, short-name override,
+ *    custom hero text. All client-side; nothing posted to the server.
+ *  - Per-asset Download PNG + Download all (ZIP) preserved.
  */
 (function () {
   const { useState, useEffect, useMemo, useRef } = React;
   const { ASSETS, POSITIONING_LINES, MIDDOT, Artboard } = window.AGK;
 
-  // To require a key, set ADMIN_KEY to a non-empty string. URL must then be ?admin=<value>.
-  // Default '1' means ?admin=1 is sufficient (per brief's simple deterrent).
   const ADMIN_KEY = '1';
-
-  const CANONICAL_HOST = 'kit.adamftd.com';
   const CONTACT_EMAIL = 'ceo@adamftd.com';
+  const MAX_LOGO_MB = 2;
+  const MAX_HERO_CHARS = 80;
 
   function normaliseCode(raw) {
     return (raw || '')
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
+      .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-').replace(/^-|-$/g, '');
   }
 
-  // -----------------------------------------------------------------------
-  // Gate (landing screen)
-  // -----------------------------------------------------------------------
+  // ---------- Data loader (API first, static JSON fallback for dev) ----------
 
-  function Gate({ onResolve, prefill }) {
+  async function loadData() {
+    try {
+      const r = await fetch('/api/data', { cache: 'no-cache' });
+      if (r.ok) return await r.json();
+    } catch (_) { /* fall through */ }
+    // Local-dev fallback (running `python -m http.server` in the repo root).
+    try {
+      const [aff, cb] = await Promise.all([
+        fetch('data/affiliates.json').then(r => r.ok ? r.json() : {}).catch(() => ({})),
+        fetch('data/cobranded_partners.json').then(r => r.ok ? r.json() : {}).catch(() => ({})),
+      ]);
+      return { affiliates: aff, cobranded: cb };
+    } catch (_) {
+      return { affiliates: {}, cobranded: {} };
+    }
+  }
+
+  // ---------- Gate ----------
+
+  function Gate({ data, onResolve, prefill }) {
     const [code, setCode] = useState(prefill || '');
     const [error, setError] = useState(null);
-    const [busy, setBusy] = useState(false);
-
-    async function handleSubmit(e) {
+    function handleSubmit(e) {
       e.preventDefault();
       const c = normaliseCode(code);
       if (!c) { setError('Enter your affiliate code to continue.'); return; }
-      setBusy(true); setError(null);
-      try {
-        const res = await fetch('data/affiliates.json', { cache: 'no-cache' });
-        if (!res.ok) throw new Error('affiliate list unavailable');
-        const list = await res.json();
-        const hit = list[c];
-        if (!hit) {
-          setError("That code isn't recognised. Please check your welcome email, or write to " + CONTACT_EMAIL + " so we can sort it.");
-          setBusy(false);
-          return;
-        }
-        onResolve({ code: c, first_name: hit.first_name, full_name: hit.full_name });
-      } catch (err) {
-        setError("Couldn't load the affiliate list. Try again, or write to " + CONTACT_EMAIL + " if this keeps happening.");
-        setBusy(false);
-      }
+      const hit = data?.affiliates?.[c];
+      if (!hit) { setError("That code isn't recognised. Please check your welcome email, or write to " + CONTACT_EMAIL + " so we can sort it."); return; }
+      onResolve({ code: c, first_name: hit.first_name, full_name: hit.full_name });
     }
-
     return (
       <div className="gate">
         <div className="gate-card">
@@ -68,28 +65,17 @@
           <h1>Welcome to the ADAMftd Partner Kit</h1>
           <p className="sub">Enter your affiliate code below to generate your personalised marketing assets.</p>
           <form onSubmit={handleSubmit} autoComplete="off">
-            <input
-              autoFocus
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="your-affiliate-code"
-              spellCheck={false}
-              aria-label="Affiliate code"
-            />
-            <button type="submit" disabled={busy}>{busy ? 'Checking…' : 'Continue'}</button>
+            <input autoFocus value={code} onChange={(e) => setCode(e.target.value)} placeholder="your-affiliate-code" spellCheck={false} aria-label="Affiliate code" />
+            <button type="submit">Continue</button>
           </form>
           {error && <div className="error">{error}</div>}
-          <div className="help">
-            Forgot your code? Check your welcome email or write to <a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a>.
-          </div>
+          <div className="help">Forgot your code? Check your welcome email or write to <a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a>.</div>
         </div>
       </div>
     );
   }
 
-  // -----------------------------------------------------------------------
-  // Welcome block
-  // -----------------------------------------------------------------------
+  // ---------- Welcome block ----------
 
   function Welcome({ aff, onDismiss }) {
     return (
@@ -110,16 +96,88 @@
           <li>Always include the code (<code>USE CODE {aff.code.toUpperCase()}</code>) or the link (<code>adamftd.com/ref/{aff.code}</code>). That's how you get credit.</li>
           <li>If you want a different headline angle, ask: <a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a>.</li>
         </ul>
-        <div className="track">
-          Track your referrals at <a href="https://adamftd.com/affiliate" target="_blank" rel="noopener">adamftd.com/affiliate</a>.
-        </div>
+        <div className="track">Track your referrals at <a href="https://adamftd.com/affiliate" target="_blank" rel="noopener">adamftd.com/affiliate</a>.</div>
       </div>
     );
   }
 
-  // -----------------------------------------------------------------------
-  // Capture utilities
-  // -----------------------------------------------------------------------
+  // ---------- Co-brand setup strip ----------
+
+  function CobrandSetup({ partner, onChange }) {
+    const fileRef = useRef(null);
+    const [err, setErr] = useState(null);
+
+    function handleFile(file) {
+      setErr(null);
+      if (!file) return;
+      const maxBytes = MAX_LOGO_MB * 1024 * 1024;
+      if (file.size > maxBytes) { setErr('Logo is over ' + MAX_LOGO_MB + ' MB. Please use a smaller file.'); return; }
+      if (!/^image\//.test(file.type)) { setErr('That doesn\'t look like an image file.'); return; }
+      const reader = new FileReader();
+      reader.onload = () => onChange({ ...partner, logo_url: String(reader.result) });
+      reader.onerror = () => setErr('Could not read the file. Try a different one.');
+      reader.readAsDataURL(file);
+    }
+
+    function onDrop(e) {
+      e.preventDefault(); e.stopPropagation();
+      const file = e.dataTransfer?.files?.[0];
+      handleFile(file);
+    }
+
+    return (
+      <div className="cobrand-strip">
+        <div className="cobrand-strip-head">
+          <span className="cobrand-label">Co-brand setup</span>
+          <span className="cobrand-hint">Partner: <strong>{partner.full_name}</strong></span>
+        </div>
+        <div className="cobrand-fields">
+          <div className="cobrand-field cobrand-logo-field">
+            <label>Partner logo (PNG or SVG, max {MAX_LOGO_MB} MB)</label>
+            <div
+              className="cobrand-drop"
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDrop={onDrop}
+              onClick={() => fileRef.current?.click()}
+              role="button"
+              tabIndex={0}
+            >
+              {partner.logo_url
+                ? <img src={partner.logo_url} alt="Partner logo preview" />
+                : <span>Drop a logo here, or click to choose</span>}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/png,image/svg+xml,image/jpeg,image/webp"
+                style={{ display: 'none' }}
+                onChange={(e) => handleFile(e.target.files?.[0])}
+              />
+            </div>
+            {partner.logo_url && (
+              <button type="button" className="link-btn" onClick={() => onChange({ ...partner, logo_url: null })}>Remove logo</button>
+            )}
+          </div>
+          <div className="cobrand-field">
+            <label>Partner short name</label>
+            <input type="text" maxLength={12} value={partner.short_name || ''}
+              onChange={(e) => onChange({ ...partner, short_name: e.target.value.slice(0, 12) })}
+              placeholder="e.g. AACC" />
+            <div className="cobrand-help">Max 12 characters. Shown in the dual lockup if no logo is uploaded.</div>
+          </div>
+          <div className="cobrand-field" style={{ flex: 2 }}>
+            <label>Custom hero headline (overrides the dropdown)</label>
+            <input type="text" maxLength={MAX_HERO_CHARS} value={partner.hero_override || ''}
+              onChange={(e) => onChange({ ...partner, hero_override: e.target.value.slice(0, MAX_HERO_CHARS) })}
+              placeholder="Leave blank to use the standard headline dropdown" />
+            <div className="cobrand-help">{(partner.hero_override || '').length}/{MAX_HERO_CHARS}</div>
+          </div>
+        </div>
+        {err && <div className="cobrand-error">{err}</div>}
+      </div>
+    );
+  }
+
+  // ---------- Capture utilities ----------
 
   async function captureNode(node, w, h) {
     const wrapper = document.createElement('div');
@@ -131,38 +189,40 @@
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
     try {
-      return await html2canvas(clone, {
-        width: w, height: h, scale: 1,
-        backgroundColor: null, useCORS: true, allowTaint: true, logging: false,
-      });
+      return await html2canvas(clone, { width: w, height: h, scale: 1, backgroundColor: null, useCORS: true, allowTaint: true, logging: false });
     } finally {
       document.body.removeChild(wrapper);
     }
   }
-
-  function canvasToBlob(canvas, type) {
-    return new Promise((resolve) => canvas.toBlob(resolve, type || 'image/png'));
-  }
-
+  function canvasToBlob(canvas, type) { return new Promise((resolve) => canvas.toBlob(resolve, type || 'image/png')); }
   function triggerDownload(blob, filename) {
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
+    const a = document.createElement('a'); a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  // -----------------------------------------------------------------------
-  // Generator (post-gate)
-  // -----------------------------------------------------------------------
+  // ---------- Generator ----------
 
-  function Generator({ initialAff, adminMode, onLogout }) {
+  function Generator({ initialAff, adminMode, onLogout, cobrandedPartners }) {
     const [aff, setAff] = useState(initialAff);
     const [mode, setMode] = useState('light');
     const [line, setLine] = useState(POSITIONING_LINES[0]);
     const [viewportW, setViewportW] = useState(window.innerWidth);
     const [welcomeOpen, setWelcomeOpen] = useState(true);
-    const [progress, setProgress] = useState(null); // { current, total, stage }
+    const [progress, setProgress] = useState(null);
+
+    // Cobranded entitlement: only present if this affiliate's code is in the
+    // cobranded whitelist. Standard affiliates never see the toggle.
+    const cobrandPartner = cobrandedPartners?.[aff.code] || null;
+    const [cobrandEnabled, setCobrandEnabled] = useState(false);
+    const [partner, setPartner] = useState(() => cobrandPartner ? {
+      short_name: cobrandPartner.short_name || aff.code.toUpperCase(),
+      full_name: cobrandPartner.full_name || '',
+      primary_color: cobrandPartner.primary_color || '#1F3A5F',
+      logo_url: cobrandPartner.logo_url || null,
+      hero_override: '',
+    } : null);
 
     useEffect(() => {
       const onResize = () => setViewportW(window.innerWidth);
@@ -170,23 +230,24 @@
       return () => window.removeEventListener('resize', onResize);
     }, []);
 
-    // Wire the per-artboard "Download PNG" button (templates.jsx calls window.__downloadOne)
+    const dark = mode === 'dark';
+    const maxArtboardW = Math.min(viewportW - 80, 1500);
+
+    const cobrand = cobrandEnabled && partner ? { partner, hero_override: partner.hero_override } : null;
+
     useEffect(() => {
       window.__downloadOne = async (node, asset) => {
         try {
           const canvas = await captureNode(node, asset.w, asset.h);
           const blob = await canvasToBlob(canvas);
-          triggerDownload(blob, asset.id + '_' + aff.code + '.png');
+          triggerDownload(blob, asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.png');
         } catch (e) {
           console.error('Capture failed', e);
           alert('Could not generate that PNG. Try again, or refresh the page.');
         }
       };
       return () => { delete window.__downloadOne; };
-    }, [aff.code]);
-
-    const dark = mode === 'dark';
-    const maxArtboardW = Math.min(viewportW - 80, 1500);
+    }, [aff.code, !!cobrand]);
 
     const groups = useMemo(() => {
       const out = []; const seen = {};
@@ -211,20 +272,18 @@
           setProgress({ current: i + 1, total: frames.length, stage: 'Rendering ' + asset.label });
           const canvas = await captureNode(node, asset.w, asset.h);
           const blob = await canvasToBlob(canvas);
-          zip.file(asset.id + '_' + aff.code + '.png', blob);
-          // Yield to the event loop so the progress UI repaints
+          zip.file(asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.png', blob);
           await new Promise(r => setTimeout(r, 30));
         }
         setProgress({ current: frames.length, total: frames.length, stage: 'Bundling ZIP' });
         const zipBlob = await zip.generateAsync({ type: 'blob' });
         const today = new Date().toISOString().slice(0, 10);
-        triggerDownload(zipBlob, 'adamftd_partner_kit_' + aff.code + '_' + today + '.zip');
+        const suffix = cobrand ? '_cobrand' : '';
+        triggerDownload(zipBlob, 'adamftd_partner_kit_' + aff.code + suffix + '_' + today + '.zip');
       } catch (e) {
         console.error('ZIP failed', e);
         alert('ZIP generation failed. Try again, or use the per-asset Download PNG buttons.');
-      } finally {
-        setProgress(null);
-      }
+      } finally { setProgress(null); }
     }
 
     function adminUpdate(field, value) {
@@ -234,11 +293,7 @@
 
     return (
       <>
-        {adminMode && (
-          <div className="admin-banner">
-            Admin override active {MIDDOT} affiliate fields are editable
-          </div>
-        )}
+        {adminMode && <div className="admin-banner">Admin override active {MIDDOT} affiliate fields are editable</div>}
         <div className="toolbar">
           <div className="toolbar-inner">
             <div className="who">
@@ -254,29 +309,29 @@
             </div>
             <div className="pill" role="radiogroup" aria-label="Mode">
               <button className={mode === 'light' ? 'active' : ''} onClick={() => setMode('light')}>Light</button>
-              <button className={mode === 'dark'  ? 'active' : ''} onClick={() => setMode('dark')}>Dark</button>
+              <button className={mode === 'dark' ? 'active' : ''} onClick={() => setMode('dark')}>Dark</button>
             </div>
+            {cobrandPartner && (
+              <div className="pill" role="radiogroup" aria-label="Co-brand">
+                <button className={!cobrandEnabled ? 'active' : ''} onClick={() => setCobrandEnabled(false)}>Single</button>
+                <button className={cobrandEnabled ? 'active' : ''} onClick={() => setCobrandEnabled(true)}>Co-brand</button>
+              </div>
+            )}
             <button className="btn" onClick={downloadAllZip}>Download all (ZIP)</button>
-
             {adminMode && (
               <div className="admin-row">
-                <div className="field">
-                  <label>First name (admin)</label>
-                  <input value={aff.first_name} onChange={(e) => adminUpdate('first_name', e.target.value)} />
-                </div>
-                <div className="field">
-                  <label>Full name (admin)</label>
-                  <input value={aff.full_name} onChange={(e) => adminUpdate('full_name', e.target.value)} />
-                </div>
-                <div className="field">
-                  <label>Code (admin)</label>
-                  <input className="code" value={aff.code} onChange={(e) => adminUpdate('code', e.target.value)} />
-                </div>
+                <div className="field"><label>First name (admin)</label><input value={aff.first_name} onChange={(e) => adminUpdate('first_name', e.target.value)} /></div>
+                <div className="field"><label>Full name (admin)</label><input value={aff.full_name} onChange={(e) => adminUpdate('full_name', e.target.value)} /></div>
+                <div className="field"><label>Code (admin)</label><input className="code" value={aff.code} onChange={(e) => adminUpdate('code', e.target.value)} /></div>
                 <button className="btn secondary" onClick={onLogout} style={{ marginLeft: 'auto' }}>Reset gate</button>
               </div>
             )}
           </div>
         </div>
+
+        {cobrandEnabled && partner && (
+          <CobrandSetup partner={partner} onChange={setPartner} />
+        )}
 
         <div className="canvas">
           {welcomeOpen
@@ -285,12 +340,10 @@
           }
           {groups.map(g => (
             <section className="section" key={g.name}>
-              <header className="section-header">
-                <h2>{g.name}</h2>
-              </header>
+              <header className="section-header"><h2>{g.name}</h2></header>
               {g.items.map(asset => {
                 const scale = Math.min(1, maxArtboardW / asset.w);
-                return <Artboard key={asset.id} asset={asset} aff={aff} dark={dark} line={line} scale={scale} />;
+                return <Artboard key={asset.id} asset={asset} aff={aff} dark={dark} line={line} scale={scale} cobrand={cobrand} />;
               })}
             </section>
           ))}
@@ -300,7 +353,7 @@
           <div className="progress-overlay" role="alert" aria-live="polite">
             <div className="progress-card">
               <div className="label">Generating your ZIP</div>
-              <div className="stage">{progress.stage}…</div>
+              <div className="stage">{progress.stage}...</div>
               <div className="bar"><div className="bar-fill" style={{ width: ((progress.current / Math.max(progress.total, 1)) * 100).toFixed(1) + '%' }} /></div>
               <div className="count">{progress.current} of {progress.total}</div>
             </div>
@@ -310,9 +363,7 @@
     );
   }
 
-  // -----------------------------------------------------------------------
-  // Root
-  // -----------------------------------------------------------------------
+  // ---------- Root ----------
 
   function App() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -320,29 +371,34 @@
     const codeFromUrl = urlParams.get('code');
     const adminMode = adminParam != null && adminParam === ADMIN_KEY;
 
-    // Admin override: skip the gate, start with a placeholder aff that admin can edit.
-    const [aff, setAff] = useState(() => {
-      if (adminMode) return { code: 'davidecollu', first_name: 'Davide', full_name: 'Davide Collu' };
-      return null;
-    });
+    const [data, setData] = useState(null);
+    const [dataErr, setDataErr] = useState(null);
+    const [aff, setAff] = useState(null);
 
-    // Optional deep-link: ?code=davidecollu auto-resolves against the JSON.
     useEffect(() => {
-      if (aff || adminMode || !codeFromUrl) return;
       (async () => {
         try {
-          const res = await fetch('data/affiliates.json', { cache: 'no-cache' });
-          if (!res.ok) return;
-          const list = await res.json();
-          const c = normaliseCode(codeFromUrl);
-          const hit = list[c];
-          if (hit) setAff({ code: c, first_name: hit.first_name, full_name: hit.full_name });
-        } catch (_) { /* fall through to gate */ }
+          const d = await loadData();
+          setData(d);
+          if (adminMode) {
+            setAff({ code: 'davidecollu', first_name: 'Davide', full_name: 'Davide Collu' });
+            return;
+          }
+          if (codeFromUrl) {
+            const c = normaliseCode(codeFromUrl);
+            const hit = d?.affiliates?.[c];
+            if (hit) setAff({ code: c, first_name: hit.first_name, full_name: hit.full_name });
+          }
+        } catch (e) {
+          setDataErr('Could not load the affiliate list. Try refreshing.');
+        }
       })();
     }, []);
 
-    if (!aff) return <Gate onResolve={setAff} prefill={codeFromUrl || ''} />;
-    return <Generator initialAff={aff} adminMode={adminMode} onLogout={() => setAff(null)} />;
+    if (dataErr) return <div className="boot">{dataErr}</div>;
+    if (!data) return <div className="boot">Loading the Partner Kit...</div>;
+    if (!aff) return <Gate data={data} onResolve={setAff} prefill={codeFromUrl || ''} />;
+    return <Generator initialAff={aff} adminMode={adminMode} onLogout={() => setAff(null)} cobrandedPartners={data.cobranded || {}} />;
   }
 
   ReactDOM.createRoot(document.getElementById('root')).render(<App />);

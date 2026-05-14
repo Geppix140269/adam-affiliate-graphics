@@ -18,3 +18,7 @@ npm-debug.log*
 .env
 .env.local
 *.local
+
+# Stale single-file build (kept as historical reference if regenerated)
+dist/
+package-lock.json
