@@ -151,6 +151,7 @@
     const [fullName, setFullName] = useState(editing?.full_name || '');
     const [status, setStatus] = useState(editing?.status || 'active');
     const [notes, setNotes] = useState(editing?.notes || '');
+    const [email, setEmail] = useState(editing?.email || '');
     const [mobile, setMobile] = useState(editing?.mobile_e164 || '');
     const [waValidated, setWaValidated] = useState(!!editing?.wa_validated);
     const [accessKey, setAccessKey] = useState(editing?.access_key || '');
@@ -172,6 +173,7 @@
           full_name: fullName.trim(),
           status,
           notes: notes.trim(),
+          email: email.trim().toLowerCase(),
           mobile_e164: mobile.trim(),
           wa_validated: !!waValidated,
         };
@@ -229,6 +231,15 @@
         <div className="row">
           <label>Full name</label>
           <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Davide Collu" />
+        </div>
+        <div className="row">
+          <label>Email (optional)</label>
+          <input
+            type="text"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="name@example.com"
+          />
         </div>
         <div className="row">
           <label>Mobile (E.164, optional, e.g. +447988540154)</label>
@@ -451,7 +462,7 @@
     function exportCsv() {
       const headers = [
         'code', 'first_name', 'full_name', 'status',
-        'mobile_e164', 'wa_validated',
+        'email', 'mobile_e164', 'wa_validated',
         'access_key', 'personal_url',
       ];
       const lines = [headers.join(',')];
@@ -462,6 +473,7 @@
           e.first_name || '',
           e.full_name || '',
           e.status || 'active',
+          e.email || '',
           e.mobile_e164 || '',
           e.wa_validated ? 'true' : 'false',
           e.access_key || '',
@@ -494,7 +506,7 @@
           body: { migration_id: 'v3-roster-sync-2026-05-14' },
         });
         setMigResult(r);
-        toast('ok', 'Migration applied. ' + r.summary.names_changed + ' names changed, ' + r.summary.affiliates_created + ' affiliates created.');
+        toast('ok', 'Migration applied. ' + (r.summary.rows_updated ?? 0) + ' rows updated, ' + (r.summary.rows_created ?? 0) + ' created.');
         load();
       } catch (e) { toast('err', e.message); }
       finally { setMigBusy(false); }
@@ -526,12 +538,22 @@
           <div className="csv-panel">
             <h3>Migration applied: {migResult.migration_id}</h3>
             <p className="sub">
-              {migResult.summary.names_changed} names changed,
-              &nbsp;{migResult.summary.names_already_correct} already correct,
-              &nbsp;{migResult.summary.affiliates_created} affiliates created,
-              &nbsp;{migResult.summary.affiliates_already_existed} already existed.
+              {migResult.summary.rows_updated ?? 0} rows updated,
+              &nbsp;{migResult.summary.rows_already_correct ?? 0} already correct,
+              &nbsp;{migResult.summary.rows_created ?? 0} created,
+              &nbsp;total now {migResult.summary.total_in_blob ?? 0}.
               &nbsp;abwci co-branded: <strong>{migResult.cobranded_abwci}</strong>.
             </p>
+            {migResult.name_updates_applied && migResult.name_updates_applied.length > 0 && (
+              <details style={{ marginTop: 12 }}>
+                <summary style={{ fontSize: 13, cursor: 'pointer' }}>Show {migResult.name_updates_applied.length} updated rows</summary>
+                <ul style={{ fontSize: 12, fontFamily: 'JetBrains Mono, monospace', marginTop: 8 }}>
+                  {migResult.name_updates_applied.map(u => (
+                    <li key={u.code}><strong>{u.code}</strong> {u.full_name} <span style={{ color: 'rgba(15,27,45,0.5)' }}>({(u.changed || []).join(', ')})</span></li>
+                  ))}
+                </ul>
+              </details>
+            )}
             {migResult.created && migResult.created.length > 0 && (
               <>
                 <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--teal)', fontWeight: 600, margin: '14px 0 8px' }}>
@@ -547,11 +569,6 @@
                   ))}
                 </div>
               </>
-            )}
-            {migResult.missing_codes && migResult.missing_codes.length > 0 && (
-              <div className="err" style={{ marginTop: 12 }}>
-                Update target not in blob (skipped): {migResult.missing_codes.join(', ')}
-              </div>
             )}
             <div className="actions">
               <button className="btn-secondary" onClick={() => setMigResult(null)}>Dismiss</button>

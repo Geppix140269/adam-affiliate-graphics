@@ -8,7 +8,7 @@
 
 import { requireAuth } from './_lib/auth.js';
 import { getAffiliates, setAffiliates, nowIso } from './_lib/blob.js';
-import { isValidCode, normaliseCode, trimToLen, generateAccessKey, isValidE164, normaliseE164 } from './_lib/validation.js';
+import { isValidCode, normaliseCode, trimToLen, generateAccessKey, isValidE164, normaliseE164, isValidEmail } from './_lib/validation.js';
 import { resp, methodNotAllowed, parseJson } from './_lib/resp.js';
 
 const STATUSES = new Set(['active', 'suspended']);
@@ -40,7 +40,11 @@ function sanitiseFields(input, existing) {
     ? !!input.wa_validated
     : !!existing?.wa_validated;
 
-  return { first_name, full_name, status, notes, mobile_e164, wa_validated };
+  let email = input.email !== undefined ? input.email : existing?.email;
+  if (email === null || email === undefined) email = '';
+  email = String(email).trim().toLowerCase();
+
+  return { first_name, full_name, status, notes, email, mobile_e164, wa_validated };
 }
 
 function validateRequired(fields) {
@@ -48,6 +52,9 @@ function validateRequired(fields) {
   if (!fields.full_name)  return 'Full name is required.';
   if (fields.mobile_e164 && !isValidE164(fields.mobile_e164)) {
     return 'Mobile number must be in E.164 format, e.g. +447988540154.';
+  }
+  if (fields.email && !isValidEmail(fields.email)) {
+    return 'Email looks invalid.';
   }
   return null;
 }
@@ -168,6 +175,7 @@ async function handle(req) {
             full_name: ln,
             status: ex?.status || 'active',
             notes: ex?.notes || '',
+            email: ex?.email || '',
             mobile_e164: phone || '',
             wa_validated: !!ex?.wa_validated,
             access_key: ex?.access_key || generateAccessKey(),

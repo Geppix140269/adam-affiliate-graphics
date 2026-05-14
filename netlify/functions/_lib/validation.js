@@ -8,6 +8,8 @@ export const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
 export const ACCESS_KEY_RE = /^[A-Za-z0-9_-]{16,64}$/;
 // E.164: optional + and 1-15 digits. We require the leading + for clarity.
 export const E164_RE = /^\+[1-9]\d{1,14}$/;
+// Loose email check: enough to catch typos, not a full RFC 5322 parser.
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function isValidCode(s) {
   return typeof s === 'string' && CODE_RE.test(s) && !s.includes('--');
@@ -23,6 +25,10 @@ export function isValidAccessKey(s) {
 
 export function isValidE164(s) {
   return typeof s === 'string' && E164_RE.test(s);
+}
+
+export function isValidEmail(s) {
+  return typeof s === 'string' && EMAIL_RE.test(s);
 }
 
 // Loose normaliser: strips spaces, dashes, parens. Doesn't validate.
