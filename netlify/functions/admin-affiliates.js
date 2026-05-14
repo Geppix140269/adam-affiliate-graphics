@@ -1,14 +1,14 @@
-// /api/admin/affiliates
-//   GET                       -> { affiliates: {...} }    (full records, including notes/timestamps)
+// /api/admin/affiliates (v2 function)
+//   GET                       -> { affiliates: {...} }
 //   POST   { ...fields }      -> create new
 //   POST   { op:"bulk_csv", csv:"..." } -> upsert from CSV
 //   PUT    { code, ...fields }-> update existing
 //   DELETE { code } or ?code= -> delete
 
-const { requireAuth } = require('./_lib/auth');
-const { getAffiliates, setAffiliates, nowIso } = require('./_lib/blob');
-const { isValidCode, normaliseCode, trimToLen } = require('./_lib/validation');
-const { resp, methodNotAllowed, parseJson } = require('./_lib/resp');
+import { requireAuth } from './_lib/auth.js';
+import { getAffiliates, setAffiliates, nowIso } from './_lib/blob.js';
+import { isValidCode, normaliseCode, trimToLen } from './_lib/validation.js';
+import { resp, methodNotAllowed, parseJson } from './_lib/resp.js';
 
 const STATUSES = new Set(['active', 'suspended']);
 
@@ -31,7 +31,6 @@ function parseCsvRows(csv) {
   const rows = [];
   const lines = String(csv || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   if (!lines.length) return rows;
-  // Optional header
   let start = 0;
   const first = lines[0].toLowerCase();
   if (first.startsWith('code,') || first.startsWith('"code"')) start = 1;
@@ -43,11 +42,11 @@ function parseCsvRows(csv) {
   return rows;
 }
 
-exports.handler = async (event) => {
-  const session = requireAuth(event);
+export default async (req) => {
+  const session = requireAuth(req);
   if (!session) return resp(401, { error: 'Unauthorized' });
 
-  const method = event.httpMethod;
+  const method = req.method;
 
   try {
     if (method === 'GET') {
@@ -56,10 +55,9 @@ exports.handler = async (event) => {
     }
 
     if (method === 'POST') {
-      const body = parseJson(event);
+      const body = await parseJson(req);
       if (!body) return resp(400, { error: 'Invalid JSON' });
 
-      // Bulk CSV import
       if (body.op === 'bulk_csv') {
         const rows = parseCsvRows(body.csv);
         const data = await getAffiliates();
@@ -87,7 +85,6 @@ exports.handler = async (event) => {
         return resp(200, { imported, skipped, skippedDetail });
       }
 
-      // Single create
       const code = normaliseCode(body.code);
       if (!isValidCode(code)) return resp(400, { error: 'Invalid code. Use lowercase letters, digits, and hyphens.' });
       const data = await getAffiliates();
@@ -101,7 +98,7 @@ exports.handler = async (event) => {
     }
 
     if (method === 'PUT') {
-      const body = parseJson(event);
+      const body = await parseJson(req);
       if (!body) return resp(400, { error: 'Invalid JSON' });
       const code = normaliseCode(body.code);
       if (!isValidCode(code)) return resp(400, { error: 'Invalid code' });
@@ -116,9 +113,13 @@ exports.handler = async (event) => {
 
     if (method === 'DELETE') {
       let code = null;
-      const body = parseJson(event);
+      const body = await parseJson(req);
       if (body && body.code) code = normaliseCode(body.code);
-      else if (event.queryStringParameters?.code) code = normaliseCode(event.queryStringParameters.code);
+      else {
+        const url = new URL(req.url);
+        const q = url.searchParams.get('code');
+        if (q) code = normaliseCode(q);
+      }
       if (!isValidCode(code)) return resp(400, { error: 'Invalid code' });
       const data = await getAffiliates();
       if (!data[code]) return resp(404, { error: 'Affiliate not found' });
@@ -133,3 +134,5 @@ exports.handler = async (event) => {
     return resp(500, { error: 'Server error: ' + (e.message || 'unknown') });
   }
 };
+
+export const config = { path: '/api/admin/affiliates' };

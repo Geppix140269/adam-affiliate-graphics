@@ -1,9 +1,9 @@
-// /api/admin/cobranded — CRUD on the co-branded partners blob.
+// /api/admin/cobranded (v2 function) — CRUD on co-branded partners.
 
-const { requireAuth } = require('./_lib/auth');
-const { getCobranded, setCobranded, nowIso } = require('./_lib/blob');
-const { isValidCode, isValidHex, normaliseCode, trimToLen } = require('./_lib/validation');
-const { resp, methodNotAllowed, parseJson } = require('./_lib/resp');
+import { requireAuth } from './_lib/auth.js';
+import { getCobranded, setCobranded, nowIso } from './_lib/blob.js';
+import { isValidCode, isValidHex, normaliseCode, trimToLen } from './_lib/validation.js';
+import { resp, methodNotAllowed, parseJson } from './_lib/resp.js';
 
 const STATUSES = new Set(['active', 'suspended']);
 const DEFAULT_COLOR = '#1F3A5F';
@@ -30,11 +30,11 @@ function validateRequired(fields) {
   return null;
 }
 
-exports.handler = async (event) => {
-  const session = requireAuth(event);
+export default async (req) => {
+  const session = requireAuth(req);
   if (!session) return resp(401, { error: 'Unauthorized' });
 
-  const method = event.httpMethod;
+  const method = req.method;
 
   try {
     if (method === 'GET') {
@@ -43,7 +43,7 @@ exports.handler = async (event) => {
     }
 
     if (method === 'POST') {
-      const body = parseJson(event);
+      const body = await parseJson(req);
       if (!body) return resp(400, { error: 'Invalid JSON' });
       const code = normaliseCode(body.code);
       if (!isValidCode(code)) return resp(400, { error: 'Invalid code. Use lowercase letters, digits, and hyphens.' });
@@ -58,7 +58,7 @@ exports.handler = async (event) => {
     }
 
     if (method === 'PUT') {
-      const body = parseJson(event);
+      const body = await parseJson(req);
       if (!body) return resp(400, { error: 'Invalid JSON' });
       const code = normaliseCode(body.code);
       if (!isValidCode(code)) return resp(400, { error: 'Invalid code' });
@@ -73,9 +73,13 @@ exports.handler = async (event) => {
 
     if (method === 'DELETE') {
       let code = null;
-      const body = parseJson(event);
+      const body = await parseJson(req);
       if (body && body.code) code = normaliseCode(body.code);
-      else if (event.queryStringParameters?.code) code = normaliseCode(event.queryStringParameters.code);
+      else {
+        const url = new URL(req.url);
+        const q = url.searchParams.get('code');
+        if (q) code = normaliseCode(q);
+      }
       if (!isValidCode(code)) return resp(400, { error: 'Invalid code' });
       const data = await getCobranded();
       if (!data[code]) return resp(404, { error: 'Partner not found' });
@@ -90,3 +94,5 @@ exports.handler = async (event) => {
     return resp(500, { error: 'Server error: ' + (e.message || 'unknown') });
   }
 };
+
+export const config = { path: '/api/admin/cobranded' };

@@ -1,24 +1,21 @@
-// Standard JSON response helper.
+// Response helpers for v2 Functions (Web API Response objects).
 
-function resp(statusCode, body, extraHeaders) {
-  return {
-    statusCode,
-    headers: {
-      'content-type': 'application/json; charset=utf-8',
-      'cache-control': 'no-store',
-      ...(extraHeaders || {}),
-    },
-    body: typeof body === 'string' ? body : JSON.stringify(body),
+export function resp(statusCode, body, extraHeaders) {
+  const headers = {
+    'content-type': 'application/json; charset=utf-8',
+    'cache-control': 'no-store',
+    ...(extraHeaders || {}),
   };
+  return new Response(typeof body === 'string' ? body : JSON.stringify(body), {
+    status: statusCode,
+    headers,
+  });
 }
 
-function methodNotAllowed(allowed) {
+export function methodNotAllowed(allowed) {
   return resp(405, { error: 'Method not allowed' }, { allow: allowed.join(', ') });
 }
 
-function parseJson(event) {
-  try { return JSON.parse(event.body || '{}'); }
-  catch (_) { return null; }
+export async function parseJson(req) {
+  try { return await req.json(); } catch (_) { return null; }
 }
-
-module.exports = { resp, methodNotAllowed, parseJson };

@@ -1,17 +1,17 @@
-// Validators shared between admin endpoints.
+// Shared validators.
 
-const CODE_RE = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
-const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
+export const CODE_RE = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
+export const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
 
-function isValidCode(s) {
+export function isValidCode(s) {
   return typeof s === 'string' && CODE_RE.test(s) && !s.includes('--');
 }
 
-function isValidHex(s) {
+export function isValidHex(s) {
   return typeof s === 'string' && HEX_RE.test(s);
 }
 
-function normaliseCode(raw) {
+export function normaliseCode(raw) {
   return String(raw || '')
     .toLowerCase()
     .replace(/\s+/g, '-')
@@ -20,8 +20,6 @@ function normaliseCode(raw) {
     .replace(/^-|-$/g, '');
 }
 
-function trimToLen(s, max) {
+export function trimToLen(s, max) {
   return String(s || '').trim().slice(0, max);
 }
-
-module.exports = { isValidCode, isValidHex, normaliseCode, trimToLen, CODE_RE, HEX_RE };

@@ -1,23 +1,18 @@
 // Simple in-memory rate limiter for the login endpoint.
-//
-// Netlify keeps functions warm between invocations, so an in-memory Map
-// works for short windows. If the container cycles, the counter resets —
-// that's an acceptable tradeoff for a single-user admin endpoint.
+// Container-local: cycles reset it, which is acceptable for one-admin use.
 
 const buckets = new Map();
-const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
-function clientIp(event) {
-  const h = event.headers || {};
-  const fwd = h['x-forwarded-for'] || h['X-Forwarded-For'];
+function clientIp(req) {
+  const fwd = req.headers.get('x-forwarded-for');
   if (fwd) return String(fwd).split(',')[0].trim();
-  return h['client-ip'] || h['Client-Ip'] || 'unknown';
+  return req.headers.get('client-ip') || 'unknown';
 }
 
-// Returns { allowed: boolean, retryAfterSeconds: number }.
-function checkRate(event) {
-  const ip = clientIp(event);
+export function checkRate(req) {
+  const ip = clientIp(req);
   const now = Date.now();
   const bucket = (buckets.get(ip) || []).filter((t) => now - t < WINDOW_MS);
   if (bucket.length >= MAX_ATTEMPTS) {
@@ -30,4 +25,4 @@ function checkRate(event) {
   return { allowed: true, retryAfterSeconds: 0 };
 }
 
-module.exports = { checkRate, MAX_ATTEMPTS, WINDOW_MS };
+export { MAX_ATTEMPTS, WINDOW_MS };

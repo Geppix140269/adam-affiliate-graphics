@@ -1,7 +1,8 @@
 {
   "name": "adam-affiliate-graphics",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "private": true,
+  "type": "module",
   "description": "ADAMftd Affiliate Programme — partner kit generator + admin dashboard",
   "dependencies": {
     "@netlify/blobs": "^7.4.0",

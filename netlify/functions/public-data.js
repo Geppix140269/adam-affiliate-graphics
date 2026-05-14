@@ -1,13 +1,11 @@
-// GET /api/data
-// Public read used by the generator at runtime.
-// Returns ONLY the fields the generator needs (no notes, no timestamps).
-// Suspended entries are filtered out so a deactivated affiliate can't pass the gate.
+// GET /api/data (v2 function)
+// Public read used by the generator. Returns sanitised view, filtering suspended entries.
 
-const { getAffiliates, getCobranded } = require('./_lib/blob');
-const { resp, methodNotAllowed } = require('./_lib/resp');
+import { getAffiliates, getCobranded } from './_lib/blob.js';
+import { resp, methodNotAllowed } from './_lib/resp.js';
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'GET') return methodNotAllowed(['GET']);
+export default async (req) => {
+  if (req.method !== 'GET') return methodNotAllowed(['GET']);
 
   try {
     const [aff, cb] = await Promise.all([getAffiliates(), getCobranded()]);
@@ -37,3 +35,5 @@ exports.handler = async (event) => {
     return resp(500, { error: 'Could not load data' });
   }
 };
+
+export const config = { path: '/api/data' };

@@ -1,37 +1,10 @@
 # ADAMftd Partner Kit — Netlify deploy config
-# Static site + Functions for /api/admin/* and /api/data
+# Static site + v2 Functions (which self-declare their /api/* paths).
 
 [build]
   publish = "."
   functions = "netlify/functions"
-  # No build command — static files are served as-is. Functions are auto-bundled.
-
-[functions]
-  node_bundler = "esbuild"
-
-# ---------- API routing ----------
-# Public read (generator hits this on load)
-[[redirects]]
-  from = "/api/data"
-  to = "/.netlify/functions/public-data"
-  status = 200
-
-# Admin auth
-[[redirects]]
-  from = "/api/admin/login"
-  to = "/.netlify/functions/admin-login"
-  status = 200
-
-# Admin CRUD
-[[redirects]]
-  from = "/api/admin/affiliates"
-  to = "/.netlify/functions/admin-affiliates"
-  status = 200
-
-[[redirects]]
-  from = "/api/admin/cobranded"
-  to = "/.netlify/functions/admin-cobranded"
-  status = 200
+  # No build command — static files served as-is. Functions are auto-bundled.
 
 # ---------- Admin page (pretty URL) ----------
 [[redirects]]

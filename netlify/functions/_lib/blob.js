@@ -1,16 +1,12 @@
-// Netlify Blobs wrapper.
-//
-// Two stores live under the "config" namespace:
-//   - "affiliates"          : { code: { first_name, full_name, status, notes, created_at, updated_at } }
-//   - "cobranded_partners"  : { code: { short_name, full_name, primary_color, logo_url, status, notes, created_at, updated_at } }
-//
-// On first read of an empty blob, we seed from the static data/*.json files
-// shipped in the repo. This means a fresh Netlify site comes up with the
-// current affiliate roster automatically.
+// Netlify Blobs wrapper. ESM. Works from v2 functions where the runtime
+// auto-injects the site context; falls back to explicit env-var creds.
 
-const fs = require('fs');
-const path = require('path');
-const { getStore } = require('@netlify/blobs');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { getStore } from '@netlify/blobs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const STORE_NAME = 'config';
 const KEY_AFFILIATES = 'affiliates';
@@ -18,9 +14,6 @@ const KEY_COBRANDED = 'cobranded_partners';
 
 function readSeedFile(filename) {
   try {
-    // Functions bundle picks up /data via the project root.
-    // Path resolution is relative to the bundled function file at runtime,
-    // so we try a couple of locations.
     const candidates = [
       path.join(__dirname, '..', '..', '..', 'data', filename),
       path.join(process.cwd(), 'data', filename),
@@ -32,7 +25,7 @@ function readSeedFile(filename) {
   return {};
 }
 
-function nowIso() {
+export function nowIso() {
   return new Date().toISOString();
 }
 
@@ -70,8 +63,19 @@ function enrichCobrandedSeed(seed) {
   return out;
 }
 
+// Use explicit creds if provided as env vars (manual override path);
+// otherwise rely on v2-function auto-injection.
+function openStore() {
+  const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
+  const token = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_API_TOKEN;
+  if (siteID && token) {
+    return getStore({ name: STORE_NAME, siteID, token });
+  }
+  return getStore(STORE_NAME);
+}
+
 async function readBlob(key, enrich, seedFile) {
-  const store = getStore(STORE_NAME);
+  const store = openStore();
   let data = null;
   try {
     data = await store.get(key, { type: 'json' });
@@ -86,28 +90,22 @@ async function readBlob(key, enrich, seedFile) {
 }
 
 async function writeBlob(key, data) {
-  const store = getStore(STORE_NAME);
+  const store = openStore();
   await store.setJSON(key, data);
 }
 
-async function getAffiliates() {
+export async function getAffiliates() {
   return readBlob(KEY_AFFILIATES, enrichAffiliateSeed, 'affiliates.json');
 }
 
-async function setAffiliates(data) {
+export async function setAffiliates(data) {
   return writeBlob(KEY_AFFILIATES, data);
 }
 
-async function getCobranded() {
+export async function getCobranded() {
   return readBlob(KEY_COBRANDED, enrichCobrandedSeed, 'cobranded_partners.json');
 }
 
-async function setCobranded(data) {
+export async function setCobranded(data) {
   return writeBlob(KEY_COBRANDED, data);
 }
-
-module.exports = {
-  getAffiliates, setAffiliates,
-  getCobranded,  setCobranded,
-  nowIso,
-};
