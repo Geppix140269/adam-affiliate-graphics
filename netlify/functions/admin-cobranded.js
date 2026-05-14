@@ -31,6 +31,15 @@ function validateRequired(fields) {
 }
 
 export default async (req) => {
+  try {
+    return await handle(req);
+  } catch (e) {
+    console.error('admin-cobranded fatal:', e?.stack || e);
+    return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
+  }
+};
+
+async function handle(req) {
   const session = requireAuth(req);
   if (!session) return resp(401, { error: 'Unauthorized' });
 
@@ -90,9 +99,9 @@ export default async (req) => {
 
     return methodNotAllowed(['GET', 'POST', 'PUT', 'DELETE']);
   } catch (e) {
-    console.error('admin-cobranded error:', e);
-    return resp(500, { error: 'Server error: ' + (e.message || 'unknown') });
+    console.error('admin-cobranded handler error:', e?.stack || e);
+    return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
   }
-};
+}
 
 export const config = { path: '/api/admin/cobranded' };

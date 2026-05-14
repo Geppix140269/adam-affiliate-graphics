@@ -16,6 +16,15 @@ function timingSafeEq(a, b) {
 }
 
 export default async (req) => {
+  try {
+    return await handle(req);
+  } catch (e) {
+    console.error('admin-login fatal:', e?.stack || e);
+    return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
+  }
+};
+
+async function handle(req) {
   if (req.method !== 'POST') return methodNotAllowed(['POST']);
 
   const rate = checkRate(req);
@@ -40,12 +49,8 @@ export default async (req) => {
     return resp(401, { error: 'Invalid password' });
   }
 
-  try {
-    const token = issueToken();
-    return resp(200, { token, expiresIn: TOKEN_TTL_HOURS * 60 * 60 });
-  } catch (e) {
-    return resp(500, { error: 'Could not issue token: ' + e.message });
-  }
-};
+  const token = issueToken();
+  return resp(200, { token, expiresIn: TOKEN_TTL_HOURS * 60 * 60 });
+}
 
 export const config = { path: '/api/admin/login' };

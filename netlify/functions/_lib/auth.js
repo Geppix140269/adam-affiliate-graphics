@@ -1,7 +1,10 @@
 // JWT issuance + verification for the admin session.
-// ESM module (project has "type": "module").
+// ESM module. jsonwebtoken is CJS, so we use namespace import for
+// reliable interop under esbuild/Netlify v2 bundling.
 
-import jwt from 'jsonwebtoken';
+import jsonwebtoken from 'jsonwebtoken';
+
+const jwt = jsonwebtoken.default || jsonwebtoken;
 
 export const TOKEN_TTL_HOURS = 8;
 
@@ -21,8 +24,6 @@ export function verifyToken(token) {
   try { return jwt.verify(token, secret); } catch (_) { return null; }
 }
 
-// Extract bearer token from a v2-function Request and verify it.
-// Returns the decoded payload, or null if missing/invalid.
 export function requireAuth(req) {
   const raw = req.headers.get('authorization') || '';
   if (!raw.startsWith('Bearer ')) return null;

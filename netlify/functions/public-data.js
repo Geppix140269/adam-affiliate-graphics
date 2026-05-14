@@ -5,6 +5,15 @@ import { getAffiliates, getCobranded } from './_lib/blob.js';
 import { resp, methodNotAllowed } from './_lib/resp.js';
 
 export default async (req) => {
+  try {
+    return await handle(req);
+  } catch (e) {
+    console.error('public-data fatal:', e?.stack || e);
+    return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
+  }
+};
+
+async function handle(req) {
   if (req.method !== 'GET') return methodNotAllowed(['GET']);
 
   try {
@@ -31,9 +40,9 @@ export default async (req) => {
       'cache-control': 'public, max-age=5, stale-while-revalidate=30',
     });
   } catch (e) {
-    console.error('public-data error:', e);
-    return resp(500, { error: 'Could not load data' });
+    console.error('public-data handler error:', e?.stack || e);
+    return resp(500, { error: 'Could not load data: ' + (e?.message || 'unknown') });
   }
-};
+}
 
 export const config = { path: '/api/data' };

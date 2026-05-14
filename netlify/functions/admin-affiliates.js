@@ -43,6 +43,15 @@ function parseCsvRows(csv) {
 }
 
 export default async (req) => {
+  try {
+    return await handle(req);
+  } catch (e) {
+    console.error('admin-affiliates fatal:', e?.stack || e);
+    return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
+  }
+};
+
+async function handle(req) {
   const session = requireAuth(req);
   if (!session) return resp(401, { error: 'Unauthorized' });
 
@@ -130,9 +139,9 @@ export default async (req) => {
 
     return methodNotAllowed(['GET', 'POST', 'PUT', 'DELETE']);
   } catch (e) {
-    console.error('admin-affiliates error:', e);
-    return resp(500, { error: 'Server error: ' + (e.message || 'unknown') });
+    console.error('admin-affiliates handler error:', e?.stack || e);
+    return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
   }
-};
+}
 
 export const config = { path: '/api/admin/affiliates' };

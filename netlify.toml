@@ -6,6 +6,11 @@
   functions = "netlify/functions"
   # No build command — static files served as-is. Functions are auto-bundled.
 
+# Bundle the data/ seed files alongside each Function so blob.js can
+# read them on first boot when the Blobs store is empty.
+[functions]
+  included_files = ["data/**"]
+
 # ---------- Admin page (pretty URL) ----------
 [[redirects]]
   from = "/admin"
