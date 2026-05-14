@@ -1,13 +1,14 @@
 // /api/admin/affiliates (v2 function)
-//   GET                       -> { affiliates: {...} }
-//   POST   { ...fields }      -> create new
-//   POST   { op:"bulk_csv", csv:"..." } -> upsert from CSV
-//   PUT    { code, ...fields }-> update existing
-//   DELETE { code } or ?code= -> delete
+//   GET                                          -> { affiliates: {...} }    (full records, incl. access_key)
+//   POST   { ...fields }                         -> create new (access_key auto-generated)
+//   POST   { op:"bulk_csv", csv:"..." }          -> upsert from CSV
+//   POST   { op:"regen_key", code:"..." }        -> rotate access_key
+//   PUT    { code, ...fields }                   -> update existing
+//   DELETE { code } or ?code=                    -> delete
 
 import { requireAuth } from './_lib/auth.js';
 import { getAffiliates, setAffiliates, nowIso } from './_lib/blob.js';
-import { isValidCode, normaliseCode, trimToLen } from './_lib/validation.js';
+import { isValidCode, normaliseCode, trimToLen, generateAccessKey } from './_lib/validation.js';
 import { resp, methodNotAllowed, parseJson } from './_lib/resp.js';
 
 const STATUSES = new Set(['active', 'suspended']);
@@ -67,6 +68,20 @@ async function handle(req) {
       const body = await parseJson(req);
       if (!body) return resp(400, { error: 'Invalid JSON' });
 
+      // Regenerate access key for an existing affiliate
+      if (body.op === 'regen_key') {
+        const code = normaliseCode(body.code);
+        if (!isValidCode(code)) return resp(400, { error: 'Invalid code' });
+        const data = await getAffiliates();
+        if (!data[code]) return resp(404, { error: 'Affiliate not found' });
+        data[code].access_key = generateAccessKey();
+        data[code].updated_at = nowIso();
+        await setAffiliates(data);
+        return resp(200, { code, access_key: data[code].access_key });
+      }
+
+      // Bulk CSV import — generates fresh keys for new rows, preserves
+      // keys on existing rows.
       if (body.op === 'bulk_csv') {
         const rows = parseCsvRows(body.csv);
         const data = await getAffiliates();
@@ -85,6 +100,7 @@ async function handle(req) {
             full_name: ln,
             status: existing?.status || 'active',
             notes: existing?.notes || '',
+            access_key: existing?.access_key || generateAccessKey(),
             created_at: existing?.created_at || now,
             updated_at: now,
           };
@@ -94,6 +110,7 @@ async function handle(req) {
         return resp(200, { imported, skipped, skippedDetail });
       }
 
+      // Single create
       const code = normaliseCode(body.code);
       if (!isValidCode(code)) return resp(400, { error: 'Invalid code. Use lowercase letters, digits, and hyphens.' });
       const data = await getAffiliates();
@@ -101,7 +118,7 @@ async function handle(req) {
       const fields = sanitiseFields(body, null);
       const err = validateRequired(fields); if (err) return resp(400, { error: err });
       const now = nowIso();
-      data[code] = { ...fields, created_at: now, updated_at: now };
+      data[code] = { ...fields, access_key: generateAccessKey(), created_at: now, updated_at: now };
       await setAffiliates(data);
       return resp(201, { code, affiliate: data[code] });
     }
@@ -115,6 +132,7 @@ async function handle(req) {
       if (!data[code]) return resp(404, { error: 'Affiliate not found' });
       const fields = sanitiseFields(body, data[code]);
       const err = validateRequired(fields); if (err) return resp(400, { error: err });
+      // Edit never changes access_key — that's only via regen_key.
       data[code] = { ...data[code], ...fields, updated_at: nowIso() };
       await setAffiliates(data);
       return resp(200, { code, affiliate: data[code] });

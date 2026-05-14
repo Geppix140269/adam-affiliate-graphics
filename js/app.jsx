@@ -1,14 +1,12 @@
 /*
  * ADAMftd Partner Kit — application shell.
  *
- * v2.1 changes:
- *  - Data now comes from /api/data (Netlify Function backed by Blobs).
- *  - Falls back to static data/*.json for local `python -m http.server` dev.
- *  - Co-branded toggle becomes visible IFF the affiliate's code is also
- *    present in the cobranded whitelist. Standard affiliates never see it.
- *  - Co-brand setup strip: partner logo upload, short-name override,
- *    custom hero text. All client-side; nothing posted to the server.
- *  - Per-asset Download PNG + Download all (ZIP) preserved.
+ * v2.2 security update:
+ *  - Gate now validates ACCESS KEY against /api/validate (server-side),
+ *    not a guessable affiliate code against a client-fetched list.
+ *  - URL deep-link is ?key=ACCESS_KEY (not ?code=).
+ *  - The cobranded entitlement comes back in the same validate response,
+ *    so the generator never sees the full affiliate or partner lists.
  */
 (function () {
   const { useState, useEffect, useMemo, useRef } = React;
@@ -25,57 +23,69 @@
       .replace(/-+/g, '-').replace(/^-|-$/g, '');
   }
 
-  // ---------- Data loader (API first, static JSON fallback for dev) ----------
+  // ---------- API ----------
 
-  async function loadData() {
-    try {
-      const r = await fetch('/api/data', { cache: 'no-cache' });
-      if (r.ok) return await r.json();
-    } catch (_) { /* fall through */ }
-    // Local-dev fallback (running `python -m http.server` in the repo root).
-    try {
-      const [aff, cb] = await Promise.all([
-        fetch('data/affiliates.json').then(r => r.ok ? r.json() : {}).catch(() => ({})),
-        fetch('data/cobranded_partners.json').then(r => r.ok ? r.json() : {}).catch(() => ({})),
-      ]);
-      return { affiliates: aff, cobranded: cb };
-    } catch (_) {
-      return { affiliates: {}, cobranded: {} };
-    }
+  async function validateKey(key) {
+    const r = await fetch('/api/validate', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ key: String(key || '').trim() }),
+    });
+    let data = null;
+    try { data = await r.json(); } catch (_) { data = null; }
+    if (r.status === 429) throw new Error('Too many tries. Wait a minute and try again.');
+    if (!r.ok) throw new Error(data?.error || ("That access key isn't valid."));
+    return data; // { affiliate: { code, first_name, full_name }, cobranded: {...} | null }
   }
 
   // ---------- Gate ----------
 
-  function Gate({ data, onResolve, prefill }) {
-    const [code, setCode] = useState(prefill || '');
+  function Gate({ onResolve, prefill }) {
+    const [key, setKey] = useState(prefill || '');
     const [error, setError] = useState(null);
-    function handleSubmit(e) {
+    const [busy, setBusy] = useState(false);
+
+    async function handleSubmit(e) {
       e.preventDefault();
-      const c = normaliseCode(code);
-      if (!c) { setError('Enter your affiliate code to continue.'); return; }
-      const hit = data?.affiliates?.[c];
-      if (!hit) { setError("That code isn't recognised. Please check your welcome email, or write to " + CONTACT_EMAIL + " so we can sort it."); return; }
-      onResolve({ code: c, first_name: hit.first_name, full_name: hit.full_name });
+      if (!key.trim()) { setError('Paste your access key (from your welcome email) to continue.'); return; }
+      setBusy(true); setError(null);
+      try {
+        const data = await validateKey(key);
+        onResolve(data);
+      } catch (err) {
+        setError(err.message + ' Check your welcome email, or write to ' + CONTACT_EMAIL + '.');
+      } finally { setBusy(false); }
     }
+
     return (
       <div className="gate">
         <div className="gate-card">
           <div className="grad" />
           <img className="logo" src="assets/adamftd-affiliate-lockup.png" alt="ADAMftd Affiliate Programme" />
           <h1>Welcome to the ADAMftd Partner Kit</h1>
-          <p className="sub">Enter your affiliate code below to generate your personalised marketing assets.</p>
+          <p className="sub">Click the personal link in your welcome email, or paste your access key below.</p>
           <form onSubmit={handleSubmit} autoComplete="off">
-            <input autoFocus value={code} onChange={(e) => setCode(e.target.value)} placeholder="your-affiliate-code" spellCheck={false} aria-label="Affiliate code" />
-            <button type="submit">Continue</button>
+            <input
+              autoFocus
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              placeholder="your-access-key"
+              spellCheck={false}
+              aria-label="Access key"
+              type="password"
+            />
+            <button type="submit" disabled={busy}>{busy ? 'Checking...' : 'Continue'}</button>
           </form>
           {error && <div className="error">{error}</div>}
-          <div className="help">Forgot your code? Check your welcome email or write to <a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a>.</div>
+          <div className="help">
+            Don't have your link? Check your welcome email or write to <a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a>.
+          </div>
         </div>
       </div>
     );
   }
 
-  // ---------- Welcome block ----------
+  // ---------- Welcome ----------
 
   function Welcome({ aff, onDismiss }) {
     return (
@@ -112,7 +122,7 @@
       if (!file) return;
       const maxBytes = MAX_LOGO_MB * 1024 * 1024;
       if (file.size > maxBytes) { setErr('Logo is over ' + MAX_LOGO_MB + ' MB. Please use a smaller file.'); return; }
-      if (!/^image\//.test(file.type)) { setErr('That doesn\'t look like an image file.'); return; }
+      if (!/^image\//.test(file.type)) { setErr("That doesn't look like an image file."); return; }
       const reader = new FileReader();
       reader.onload = () => onChange({ ...partner, logo_url: String(reader.result) });
       reader.onerror = () => setErr('Could not read the file. Try a different one.');
@@ -204,7 +214,7 @@
 
   // ---------- Generator ----------
 
-  function Generator({ initialAff, adminMode, onLogout, cobrandedPartners }) {
+  function Generator({ initialAff, cobrandedPartner, adminMode, onLogout }) {
     const [aff, setAff] = useState(initialAff);
     const [mode, setMode] = useState('light');
     const [line, setLine] = useState(POSITIONING_LINES[0]);
@@ -212,15 +222,12 @@
     const [welcomeOpen, setWelcomeOpen] = useState(true);
     const [progress, setProgress] = useState(null);
 
-    // Cobranded entitlement: only present if this affiliate's code is in the
-    // cobranded whitelist. Standard affiliates never see the toggle.
-    const cobrandPartner = cobrandedPartners?.[aff.code] || null;
     const [cobrandEnabled, setCobrandEnabled] = useState(false);
-    const [partner, setPartner] = useState(() => cobrandPartner ? {
-      short_name: cobrandPartner.short_name || aff.code.toUpperCase(),
-      full_name: cobrandPartner.full_name || '',
-      primary_color: cobrandPartner.primary_color || '#1F3A5F',
-      logo_url: cobrandPartner.logo_url || null,
+    const [partner, setPartner] = useState(() => cobrandedPartner ? {
+      short_name: cobrandedPartner.short_name || aff.code.toUpperCase(),
+      full_name: cobrandedPartner.full_name || '',
+      primary_color: cobrandedPartner.primary_color || '#1F3A5F',
+      logo_url: cobrandedPartner.logo_url || null,
       hero_override: '',
     } : null);
 
@@ -232,7 +239,6 @@
 
     const dark = mode === 'dark';
     const maxArtboardW = Math.min(viewportW - 80, 1500);
-
     const cobrand = cobrandEnabled && partner ? { partner, hero_override: partner.hero_override } : null;
 
     useEffect(() => {
@@ -311,7 +317,7 @@
               <button className={mode === 'light' ? 'active' : ''} onClick={() => setMode('light')}>Light</button>
               <button className={mode === 'dark' ? 'active' : ''} onClick={() => setMode('dark')}>Dark</button>
             </div>
-            {cobrandPartner && (
+            {cobrandedPartner && (
               <div className="pill" role="radiogroup" aria-label="Co-brand">
                 <button className={!cobrandEnabled ? 'active' : ''} onClick={() => setCobrandEnabled(false)}>Single</button>
                 <button className={cobrandEnabled ? 'active' : ''} onClick={() => setCobrandEnabled(true)}>Co-brand</button>
@@ -368,37 +374,55 @@
   function App() {
     const urlParams = new URLSearchParams(window.location.search);
     const adminParam = urlParams.get('admin');
-    const codeFromUrl = urlParams.get('code');
+    const keyFromUrl = urlParams.get('key');
     const adminMode = adminParam != null && adminParam === ADMIN_KEY;
 
-    const [data, setData] = useState(null);
-    const [dataErr, setDataErr] = useState(null);
-    const [aff, setAff] = useState(null);
+    const [resolved, setResolved] = useState(null); // { affiliate, cobranded }
+    const [bootError, setBootError] = useState(null);
+    const [booting, setBooting] = useState(!!keyFromUrl);
 
     useEffect(() => {
+      if (adminMode) {
+        setResolved({
+          affiliate: { code: 'davidecollu', first_name: 'Davide', full_name: 'Davide Collu' },
+          cobranded: null,
+        });
+        return;
+      }
+      if (!keyFromUrl) return;
       (async () => {
         try {
-          const d = await loadData();
-          setData(d);
-          if (adminMode) {
-            setAff({ code: 'davidecollu', first_name: 'Davide', full_name: 'Davide Collu' });
-            return;
-          }
-          if (codeFromUrl) {
-            const c = normaliseCode(codeFromUrl);
-            const hit = d?.affiliates?.[c];
-            if (hit) setAff({ code: c, first_name: hit.first_name, full_name: hit.full_name });
-          }
+          const data = await validateKey(keyFromUrl);
+          setResolved(data);
+          // Strip the key from the URL so it isn't kept in history/screenshots
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('key');
+            window.history.replaceState({}, '', url.toString());
+          } catch (_) {}
         } catch (e) {
-          setDataErr('Could not load the affiliate list. Try refreshing.');
+          setBootError(e.message);
+        } finally {
+          setBooting(false);
         }
       })();
     }, []);
 
-    if (dataErr) return <div className="boot">{dataErr}</div>;
-    if (!data) return <div className="boot">Loading the Partner Kit...</div>;
-    if (!aff) return <Gate data={data} onResolve={setAff} prefill={codeFromUrl || ''} />;
-    return <Generator initialAff={aff} adminMode={adminMode} onLogout={() => setAff(null)} cobrandedPartners={data.cobranded || {}} />;
+    if (booting) return <div className="boot">Checking your access key...</div>;
+
+    if (!resolved) {
+      return <Gate
+        onResolve={setResolved}
+        prefill=""
+      />;
+    }
+
+    return <Generator
+      initialAff={resolved.affiliate}
+      cobrandedPartner={resolved.cobranded}
+      adminMode={adminMode}
+      onLogout={() => setResolved(null)}
+    />;
   }
 
   ReactDOM.createRoot(document.getElementById('root')).render(<App />);

@@ -130,16 +130,32 @@
     );
   }
 
+  function personalUrl(accessKey) {
+    return window.location.origin + '/?key=' + accessKey;
+  }
+
+  async function copyToClipboard(text, toast, label) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast('ok', label + ' copied');
+    } catch (e) {
+      toast('err', 'Could not copy. Long-press to select and copy manually.');
+    }
+  }
+
   // ---------- Affiliate edit form ----------
-  function AffiliateModal({ editing, onClose, onSave }) {
+  function AffiliateModal({ editing, onClose, onSave, toast }) {
     const isNew = !editing?.code || editing.__new;
     const [code, setCode] = useState(editing?.code || '');
     const [firstName, setFirstName] = useState(editing?.first_name || '');
     const [fullName, setFullName] = useState(editing?.full_name || '');
     const [status, setStatus] = useState(editing?.status || 'active');
     const [notes, setNotes] = useState(editing?.notes || '');
+    const [accessKey, setAccessKey] = useState(editing?.access_key || '');
     const [err, setErr] = useState(null);
     const [busy, setBusy] = useState(false);
+    const [showKey, setShowKey] = useState(false);
+    const [regenBusy, setRegenBusy] = useState(false);
 
     async function submit() {
       setErr(null); setBusy(true);
@@ -150,7 +166,14 @@
         if (!fullName.trim()) throw new Error('Full name is required.');
         const body = { code: c, first_name: firstName.trim(), full_name: fullName.trim(), status, notes: notes.trim() };
         if (isNew) {
-          await apiCall('/api/admin/affiliates', { method: 'POST', body });
+          const r = await apiCall('/api/admin/affiliates', { method: 'POST', body });
+          // Newly created — show the access key prominently so admin can copy it
+          if (r?.affiliate?.access_key) {
+            setAccessKey(r.affiliate.access_key);
+            setShowKey(true);
+            toast('ok', 'Created. Copy the personal URL before closing.');
+            return; // Don't auto-close — admin needs the key
+          }
         } else {
           await apiCall('/api/admin/affiliates', { method: 'PUT', body });
         }
@@ -159,20 +182,34 @@
       finally { setBusy(false); }
     }
 
+    async function regenKey() {
+      if (!confirm('Regenerate the access key? The current key will stop working immediately. Make sure you send the new personal URL to the affiliate.')) return;
+      setRegenBusy(true); setErr(null);
+      try {
+        const r = await apiCall('/api/admin/affiliates', { method: 'POST', body: { op: 'regen_key', code } });
+        setAccessKey(r.access_key);
+        setShowKey(true);
+        toast('ok', 'New access key generated. Copy the URL now.');
+      } catch (e) { setErr(e.message); }
+      finally { setRegenBusy(false); }
+    }
+
+    const url = accessKey ? personalUrl(accessKey) : '';
+
     return (
       <Modal
         title={isNew ? 'Add affiliate' : 'Edit affiliate'}
         onClose={onClose}
         foot={
           <>
-            <button className="btn-secondary" onClick={onClose} disabled={busy}>Cancel</button>
-            <button className="btn-primary" onClick={submit} disabled={busy}>{busy ? 'Saving...' : 'Save'}</button>
+            <button className="btn-secondary" onClick={onClose} disabled={busy}>{accessKey && isNew ? 'Done' : 'Cancel'}</button>
+            {!(accessKey && isNew) && <button className="btn-primary" onClick={submit} disabled={busy}>{busy ? 'Saving...' : 'Save'}</button>}
           </>
         }
       >
         <div className="row">
-          <label>Code</label>
-          <input type="text" className="mono" value={code} onChange={(e) => setCode(e.target.value)} disabled={!isNew} placeholder="lowercase-hyphens" />
+          <label>Code (public — used in referral URLs)</label>
+          <input type="text" className="mono" value={code} onChange={(e) => setCode(e.target.value)} disabled={!isNew || !!accessKey} placeholder="lowercase-hyphens" />
           <div className="hint">Lowercase letters, digits, hyphens. Cannot be changed after creation.</div>
         </div>
         <div className="row">
@@ -190,6 +227,29 @@
             <option value="suspended">Suspended (hidden from gate)</option>
           </select>
         </div>
+
+        {accessKey && (
+          <div className="key-panel">
+            <div className="key-panel-head">
+              <span className="key-panel-label">Access key (private — send only to this affiliate)</span>
+              <button type="button" className="link-btn" onClick={() => setShowKey(!showKey)}>{showKey ? 'Hide' : 'Show'}</button>
+            </div>
+            <input
+              type="text"
+              className="mono"
+              readOnly
+              value={showKey ? accessKey : accessKey.replace(/./g, '•')}
+              onClick={(e) => e.target.select()}
+            />
+            <div className="key-panel-actions">
+              <button type="button" className="btn-secondary" onClick={() => copyToClipboard(accessKey, toast, 'Access key')}>Copy key</button>
+              <button type="button" className="btn-primary" onClick={() => copyToClipboard(url, toast, 'Personal URL')}>Copy personal URL</button>
+              {!isNew && <button type="button" className="btn-danger" onClick={regenKey} disabled={regenBusy}>{regenBusy ? 'Regenerating...' : 'Regenerate key'}</button>}
+            </div>
+            <div className="hint">Personal URL: <span className="mono">{url}</span></div>
+          </div>
+        )}
+
         <div className="row">
           <label>Internal notes (admin only)</label>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. Applied via web form, qualified 2026-05-14" />
@@ -398,22 +458,36 @@
               <th>Code</th>
               <th>First name</th>
               <th>Full name</th>
+              <th>Access</th>
               <th>Status</th>
               <th>Last modified</th>
-              <th style={{ width: 110, textAlign: 'right' }}>Actions</th>
+              <th style={{ width: 150, textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={6} className="empty-row">Loading...</td></tr>}
-            {!loading && rows.length === 0 && <tr><td colSpan={6} className="empty-row">No affiliates match your search.</td></tr>}
+            {loading && <tr><td colSpan={7} className="empty-row">Loading...</td></tr>}
+            {!loading && rows.length === 0 && <tr><td colSpan={7} className="empty-row">No affiliates match your search.</td></tr>}
             {!loading && rows.map((r) => (
               <tr key={r.code}>
                 <td className="mono">{r.code}</td>
                 <td>{r.first_name}</td>
                 <td>{r.full_name}</td>
+                <td className="mono key-cell">
+                  {r.access_key
+                    ? <span title="Access key (truncated for privacy)">•••{String(r.access_key).slice(-4)}</span>
+                    : <span style={{ color: 'rgba(208,74,59,0.7)' }}>missing</span>}
+                </td>
                 <td><span className={'status-badge status-' + (r.status || 'active')}>{r.status || 'active'}</span></td>
                 <td className="mono">{fmtDate(r.updated_at)}</td>
                 <td className="actions">
+                  {r.access_key && (
+                    <button
+                      className="icon-btn"
+                      onClick={() => copyToClipboard(personalUrl(r.access_key), toast, 'Personal URL')}
+                      aria-label="Copy personal URL"
+                      title="Copy personal URL"
+                    >🔗</button>
+                  )}
                   <button className="icon-btn" onClick={() => setEditing(r)} aria-label="Edit">✎</button>
                   <button className="icon-btn danger" onClick={() => setDeleting(r)} aria-label="Delete">🗑</button>
                 </td>
@@ -425,6 +499,7 @@
         {editing && (
           <AffiliateModal
             editing={editing}
+            toast={toast}
             onClose={() => setEditing(null)}
             onSave={() => { setEditing(null); toast('ok', 'Saved'); load(); }}
           />

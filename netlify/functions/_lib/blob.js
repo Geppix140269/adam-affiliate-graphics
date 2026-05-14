@@ -1,10 +1,10 @@
-// Netlify Blobs wrapper. ESM. Works from v2 functions where the runtime
-// auto-injects the site context; falls back to explicit env-var creds.
+// Netlify Blobs wrapper. ESM. Auto-injects on Functions v2.
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getStore } from '@netlify/blobs';
+import { generateAccessKey } from './validation.js';
 
 const __here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -38,6 +38,7 @@ function enrichAffiliateSeed(seed) {
       full_name: entry.full_name || '',
       status: entry.status || 'active',
       notes: entry.notes || '',
+      access_key: entry.access_key || generateAccessKey(),
       created_at: entry.created_at || now,
       updated_at: entry.updated_at || now,
     };
@@ -63,8 +64,6 @@ function enrichCobrandedSeed(seed) {
   return out;
 }
 
-// Use explicit creds if provided as env vars (manual override path);
-// otherwise rely on v2-function auto-injection.
 function openStore() {
   const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
   const token = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_API_TOKEN;
@@ -94,8 +93,22 @@ async function writeBlob(key, data) {
   await store.setJSON(key, data);
 }
 
+// Read affiliates and auto-generate access_key for any record that's
+// missing one (lazy migration). Idempotent: writes back only if anything
+// changed.
 export async function getAffiliates() {
-  return readBlob(KEY_AFFILIATES, enrichAffiliateSeed, 'affiliates.json');
+  const data = await readBlob(KEY_AFFILIATES, enrichAffiliateSeed, 'affiliates.json');
+  let mutated = false;
+  for (const entry of Object.values(data)) {
+    if (!entry.access_key) {
+      entry.access_key = generateAccessKey();
+      mutated = true;
+    }
+  }
+  if (mutated) {
+    try { await writeBlob(KEY_AFFILIATES, data); } catch (_) { /* non-fatal */ }
+  }
+  return data;
 }
 
 export async function setAffiliates(data) {
