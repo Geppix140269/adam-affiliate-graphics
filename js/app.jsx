@@ -11,7 +11,7 @@
  */
 (function () {
   const { useState, useEffect, useMemo, useRef } = React;
-  const { ASSETS, POSITIONING_LINES, MIDDOT } = window.AGK;
+  const { ASSETS, POSITIONING_LINES, MIDDOT, Artboard } = window.AGK;
 
   // To require a key, set ADMIN_KEY to a non-empty string. URL must then be ?admin=<value>.
   // Default '1' means ?admin=1 is sufficient (per brief's simple deterrent).
@@ -290,7 +290,7 @@
               </header>
               {g.items.map(asset => {
                 const scale = Math.min(1, maxArtboardW / asset.w);
-                return <window.AGK.Artboard key={asset.id} asset={asset} aff={aff} dark={dark} line={line} scale={scale} />;
+                return <Artboard key={asset.id} asset={asset} aff={aff} dark={dark} line={line} scale={scale} />;
               })}
             </section>
           ))}
