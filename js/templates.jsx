@@ -306,11 +306,7 @@
   // Artboards (15)
   // ------------------------------------------------------------------
 
-  // COVER ASSET — moderation-safe.
-  // LinkedIn (and others by the same logic) reject profile covers that bake
-  // a referral URL + USE CODE block + discount/perks language into the
-  // image. We keep logo + headline + "Referred by" only.
-  function LinkedInBanner({ aff, dark = true, line, cobrand }) {
+  function LinkedInBanner({ aff, dark = true, line, cobrand, promos }) {
     const bg = dark ? PALETTE.ink : PALETTE.paper;
     const fg = dark ? PALETTE.white : PALETTE.ink;
     const muted = dark ? 'rgba(238,243,250,0.65)' : 'rgba(15,27,45,0.65)';
@@ -320,7 +316,12 @@
     return (
       <div style={{ width: 1584, height: 396, background: bg, position: 'relative', overflow: 'hidden', fontFamily: TYPE.sans, color: fg }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0 }}><GradientHairline h={3} /></div>
-        <div style={{ position: 'absolute', top: 28, left: 72, fontFamily: TYPE.mono, fontSize: 12, letterSpacing: '0.28em', textTransform: 'uppercase', color: muted, fontWeight: 500 }}>{BRAND_EYEBROW}</div>
+        <div style={{ position: 'absolute', top: 28, left: 72, right: 72, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+          <div style={{ fontFamily: TYPE.mono, fontSize: 12, letterSpacing: '0.28em', textTransform: 'uppercase', color: muted, fontWeight: 500 }}>{BRAND_EYEBROW}</div>
+          {promos && promos.length > 0 && (
+            <Promotions items={promos} variant="compact" dark={dark} accentColor={accent(cobrand)} />
+          )}
+        </div>
         <div style={{ position: 'absolute', inset: '56px 72px 36px 72px', display: 'grid', gridTemplateColumns: `${leftCol} 1px 1fr`, gap: 44, alignItems: 'stretch' }}>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 14 }}>
             <Brand width={brandW} cobrand={cobrand} inset={dark} padding={12} radius={10} bg={dark ? PALETTE.paper : 'transparent'} />
@@ -329,10 +330,10 @@
           <div style={{ width: 1, background: ruleColor, alignSelf: 'stretch' }} />
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, gap: 10 }}>
             <Eyebrow color={accent(cobrand)} size={11}>Trade intelligence, grounded</Eyebrow>
-            <div style={{ fontSize: 44, fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', color: fg, textWrap: 'balance', maxWidth: 900 }}>
+            <div style={{ fontSize: 40, fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', color: fg, textWrap: 'balance', maxWidth: 900 }}>
               {pickHeadline(line, cobrand)}
             </div>
-            <WebsiteUrl aff={aff} dark={dark} size="md" />
+            <CodeBlock aff={aff} dark={dark} size="md" cobrand={cobrand} />
           </div>
         </div>
       </div>
@@ -531,7 +532,6 @@
     );
   }
 
-  // COVER ASSET — moderation-safe. See LinkedInBanner comment.
   function XHeader({ aff, dark = true, line, cobrand }) {
     const bg = dark ? PALETTE.ink : PALETTE.paper;
     const fg = dark ? PALETTE.white : PALETTE.ink;
@@ -549,10 +549,10 @@
           <div style={{ width: 1, background: ruleColor }} />
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, gap: 12 }}>
             <Eyebrow color={accent(cobrand)} size={13}>Trade intelligence, grounded</Eyebrow>
-            <div style={{ fontSize: 60, fontWeight: 600, lineHeight: 1.05, letterSpacing: '-0.03em', color: fg, textWrap: 'balance', maxWidth: 880 }}>
+            <div style={{ fontSize: 56, fontWeight: 600, lineHeight: 1.05, letterSpacing: '-0.03em', color: fg, textWrap: 'balance', maxWidth: 880 }}>
               {pickHeadline(line, cobrand, 'AI-native AND source-anchored.')}
             </div>
-            <WebsiteUrl aff={aff} dark={dark} size="md" />
+            <CodeBlock aff={aff} dark={dark} size="lg" cobrand={cobrand} />
           </div>
         </div>
       </div>
@@ -596,7 +596,6 @@
     );
   }
 
-  // COVER ASSET — moderation-safe. See LinkedInBanner comment.
   function FacebookCover({ aff, dark = true, cobrand }) {
     const bg = dark ? PALETTE.ink : PALETTE.paper;
     const fg = dark ? PALETTE.white : PALETTE.ink;
@@ -617,7 +616,7 @@
             <div style={{ fontSize: 22, fontWeight: 600, lineHeight: 1.15, letterSpacing: '-0.02em', color: fg, textWrap: 'balance' }}>
               {cobrand?.hero_override?.trim() || 'AI-native trade intelligence, grounded in source data.'}
             </div>
-            <WebsiteUrl aff={aff} dark={dark} size="sm" />
+            <CodeBlock aff={aff} dark={dark} size="sm" cobrand={cobrand} />
           </div>
         </div>
       </div>
@@ -656,14 +655,11 @@
     );
   }
 
-  // COVER ASSET — moderation-safe. See LinkedInBanner comment.
-  // For consistency with the platform-cover assets we strip the bordered
-  // USE CODE / URL panel from the top-right. The "Referred by" attribution
-  // stays.
   function ZoomBackground({ aff, dark = true, cobrand }) {
     const bg = dark ? PALETTE.ink : PALETTE.paper;
     const fg = dark ? PALETTE.white : PALETTE.ink;
     const muted = dark ? 'rgba(238,243,250,0.55)' : 'rgba(15,27,45,0.55)';
+    const ruleColor = dark ? 'rgba(238,243,250,0.14)' : 'rgba(15,27,45,0.10)';
     const brandW = cobrand?.partner ? 600 : 340;
     return (
       <div style={{ width: 1920, height: 1080, background: bg, position: 'relative', overflow: 'hidden', fontFamily: TYPE.sans, color: fg }}>
@@ -683,7 +679,9 @@
           <div style={{ fontFamily: TYPE.mono, fontSize: 14, letterSpacing: '0.22em', textTransform: 'uppercase', color: muted, textAlign: 'right' }}>
             Referred by <span style={{ color: fg, fontWeight: 500 }}>{aff.full_name}</span>
           </div>
-          <WebsiteUrl aff={aff} dark={dark} size="md" align="right" />
+          <div style={{ padding: '18px 24px', background: dark ? 'rgba(238,243,250,0.06)' : 'rgba(15,27,45,0.04)', border: `1px solid ${ruleColor}`, borderRadius: 10 }}>
+            <CodeBlock aff={aff} dark={dark} size="md" align="right" cobrand={cobrand} />
+          </div>
         </div>
       </div>
     );
@@ -792,7 +790,7 @@
   // format='jpeg' marks cover assets that LinkedIn/X/FB upload more reliably
   // as JPEGs (no alpha channel, no PNG profile quirks, smaller file).
   const ASSETS = [
-    { id: 'linkedin_banner',     label: 'LinkedIn banner',                w: 1584, h: 396,  Comp: LinkedInBanner,         useLine: true,                                    group: 'Cover rails (profile headers)' },
+    { id: 'linkedin_banner',     label: 'LinkedIn banner',                w: 1584, h: 396,  Comp: LinkedInBanner,         useLine: true,  usePromos: true,                  group: 'Cover rails (profile headers)' },
     { id: 'x_header',            label: 'X header',                       w: 1500, h: 500,  Comp: XHeader,                useLine: true,                                    group: 'Cover rails (profile headers)' },
     { id: 'facebook_cover',      label: 'Facebook cover',                 w: 820,  h: 312,  Comp: FacebookCover,                                                            group: 'Cover rails (profile headers)' },
     { id: 'instagram_curiosity', label: 'IG / LI feed (curiosity)',       w: 1080, h: 1080, Comp: InstagramCuriosity,                                       group: 'Feed posts (square)' },
