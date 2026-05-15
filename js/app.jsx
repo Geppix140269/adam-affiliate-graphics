@@ -117,11 +117,6 @@
           </>
         )}
 
-        <div className="rules-head">For your LinkedIn / X / Facebook cover</div>
-        <ul className="rules">
-          <li>Click <strong>Screenshot mode</strong> on the cover artboard (not Download PNG). A new tab opens with the banner at full size. Press <code>Win + Shift + S</code>, drag a rectangle around the banner, and save the screenshot. Upload that to LinkedIn. This works around a known issue where LinkedIn rejects browser-generated PNGs.</li>
-        </ul>
-
         <div className="rules-head">Three rules to keep the kit working</div>
         <ul className="rules">
           <li>Use the assets as-generated. Don't crop, recolour, or overlay other text.</li>
@@ -325,8 +320,29 @@
     return out;
   }
 
-  async function finaliseBlob(blob, mime) {
+  async function finaliseBlob(blob, mime, opts = {}) {
     if (mime !== 'image/png') return blob;
+
+    // For cover assets, route through the server-side sharp normaliser.
+    // That function decodes + re-encodes the PNG via libvips, which writes
+    // the sRGB ICC profile and standard PNG structure LinkedIn expects.
+    if (opts.coverAsset) {
+      try {
+        const res = await fetch('/api/normalize-png', {
+          method: 'POST',
+          headers: { 'content-type': 'image/png' },
+          body: blob,
+        });
+        if (res.ok) {
+          return await res.blob();
+        }
+        console.warn('Server normalisation returned', res.status, '— falling back to client sRGB injection');
+      } catch (e) {
+        console.warn('Server normalisation request failed, falling back', e);
+      }
+    }
+
+    // Fallback / non-cover: client-side sRGB chunk injection.
     try {
       const buf = await blob.arrayBuffer();
       const fixed = injectSRGBInPng(new Uint8Array(buf));
@@ -381,7 +397,7 @@
           const ex = exportFor(asset);
           const canvas = await captureNode(node, asset.w, asset.h, { opaque: ex.opaque });
           const rawBlob = await canvasToBlob(canvas, ex.mime, ex.quality);
-          const finalBlob = await finaliseBlob(rawBlob, ex.mime);
+          const finalBlob = await finaliseBlob(rawBlob, ex.mime, { coverAsset: !!asset.coverAsset });
           triggerDownload(finalBlob, asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext);
         } catch (e) {
           console.error('Capture failed', e);
@@ -462,7 +478,7 @@
           const ex = exportFor(asset);
           const canvas = await captureNode(node, asset.w, asset.h, { opaque: ex.opaque });
           const rawBlob = await canvasToBlob(canvas, ex.mime, ex.quality);
-          const finalBlob = await finaliseBlob(rawBlob, ex.mime);
+          const finalBlob = await finaliseBlob(rawBlob, ex.mime, { coverAsset: !!asset.coverAsset });
           zip.file(asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext, finalBlob);
           await new Promise(r => setTimeout(r, 30));
         }

@@ -10,6 +10,9 @@
 # read them on first boot when the Blobs store is empty.
 [functions]
   included_files = ["data/**"]
+  # sharp has native bindings — keep it as an external dependency so
+  # Netlify's bundler doesn't try to inline its binary modules.
+  external_node_modules = ["sharp", "@netlify/blobs"]
 
 # ---------- Admin page (pretty URL) ----------
 [[redirects]]

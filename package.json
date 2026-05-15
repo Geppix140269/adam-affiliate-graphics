@@ -6,6 +6,7 @@
   "description": "ADAMftd Affiliate Programme — partner kit generator + admin dashboard",
   "dependencies": {
     "@netlify/blobs": "^7.4.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "sharp": "^0.33.5"
   }
 }
