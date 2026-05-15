@@ -268,6 +268,52 @@
     return { mime: 'image/png', ext: 'png', opaque: true, quality: undefined };
   }
 
+  // -------------------- Server-side cover render --------------------
+  // For the 4 cover assets, ask the Puppeteer-backed Function to render
+  // them in real Chromium and return a PNG. Returns null if the function
+  // fails so the caller can fall back to html2canvas.
+
+  async function renderCoverServerSide(asset, aff, mode, line, cobrand, promos) {
+    try {
+      const body = {
+        asset: asset.id,
+        aff: { code: aff.code, first_name: aff.first_name, full_name: aff.full_name },
+        mode: mode,
+        line: line || undefined,
+      };
+      if (asset.useLine === false) delete body.line;
+      if (cobrand && cobrand.partner) {
+        body.cobrand = {
+          partner: {
+            short_name: cobrand.partner.short_name,
+            full_name: cobrand.partner.full_name,
+            primary_color: cobrand.partner.primary_color,
+            // logo_url omitted — too long for the URL params the server
+            // forwards to /render. Cobrand falls back to short_name text.
+          },
+          hero_override: cobrand.hero_override || '',
+        };
+      }
+      if (asset.usePromos && Array.isArray(promos) && promos.length) {
+        body.promos = promos.map(p => ({ headline: p.headline, detail: p.detail || '' }));
+      }
+      const res = await fetch('/api/render-cover', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        console.warn('render-cover returned', res.status, text);
+        return null;
+      }
+      return await res.blob();
+    } catch (e) {
+      console.warn('renderCoverServerSide error', e);
+      return null;
+    }
+  }
+
   // -------------------- PNG sRGB chunk injection --------------------
   // canvas.toBlob('image/png') produces a PNG with NO sRGB chunk, even
   // when the canvas was opened with colorSpace: 'srgb'. LinkedIn's image-
@@ -394,6 +440,16 @@
     useEffect(() => {
       window.__downloadOne = async (node, asset) => {
         try {
+          const filename = asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.png';
+          // Cover assets render server-side via Puppeteer for LinkedIn-
+          // compliant output. All other assets keep using html2canvas
+          // because those uploads don't have the cover-moderation issue.
+          if (asset.coverAsset) {
+            const blob = await renderCoverServerSide(asset, aff, mode, line, cobrand, promos);
+            if (blob) { triggerDownload(blob, filename); return; }
+            // If server render fails, fall through to the html2canvas path
+            console.warn('Server render failed, falling back to html2canvas');
+          }
           const ex = exportFor(asset);
           const canvas = await captureNode(node, asset.w, asset.h, { opaque: ex.opaque });
           const rawBlob = await canvasToBlob(canvas, ex.mime, ex.quality);
@@ -475,11 +531,27 @@
           const asset = ASSETS.find(a => a.id === id);
           if (!asset) continue;
           setProgress({ current: i + 1, total: frames.length, stage: 'Rendering ' + asset.label });
-          const ex = exportFor(asset);
-          const canvas = await captureNode(node, asset.w, asset.h, { opaque: ex.opaque });
-          const rawBlob = await canvasToBlob(canvas, ex.mime, ex.quality);
-          const finalBlob = await finaliseBlob(rawBlob, ex.mime, { coverAsset: !!asset.coverAsset });
-          zip.file(asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext, finalBlob);
+          // For cover assets, render server-side. Fall back to html2canvas
+          // path on any failure so the ZIP still produces something.
+          let added = false;
+          if (asset.coverAsset) {
+            try {
+              const serverBlob = await renderCoverServerSide(asset, aff, mode, line, cobrand, promos);
+              if (serverBlob) {
+                zip.file(asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.png', serverBlob);
+                added = true;
+              }
+            } catch (e) {
+              console.warn('Server render failed for ' + asset.id + ', falling back', e);
+            }
+          }
+          if (!added) {
+            const ex = exportFor(asset);
+            const canvas = await captureNode(node, asset.w, asset.h, { opaque: ex.opaque });
+            const rawBlob = await canvasToBlob(canvas, ex.mime, ex.quality);
+            const finalBlob = await finaliseBlob(rawBlob, ex.mime, { coverAsset: !!asset.coverAsset });
+            zip.file(asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext, finalBlob);
+          }
           await new Promise(r => setTimeout(r, 30));
         }
         setProgress({ current: frames.length, total: frames.length, stage: 'Bundling ZIP' });

@@ -10,9 +10,18 @@
 # read them on first boot when the Blobs store is empty.
 [functions]
   included_files = ["data/**"]
-  # sharp has native bindings — keep it as an external dependency so
-  # Netlify's bundler doesn't try to inline its binary modules.
-  external_node_modules = ["sharp", "@netlify/blobs"]
+  # Native-binding libraries — keep as externals so Netlify's bundler
+  # doesn't try to inline their binaries.
+  external_node_modules = [
+    "sharp",
+    "@netlify/blobs",
+    "puppeteer-core",
+    "@sparticuz/chromium",
+  ]
+
+# Render-cover function uses headless Chromium → slower cold start.
+[functions."render-cover"]
+  timeout = 26
 
 # ---------- Admin page (pretty URL) ----------
 [[redirects]]
@@ -23,6 +32,12 @@
 [[redirects]]
   from = "/admin/*"
   to = "/admin.html"
+  status = 200
+
+# ---------- Render route (used by Puppeteer for cover screenshots) ----------
+[[redirects]]
+  from = "/render"
+  to = "/render.html"
   status = 200
 
 # ---------- Cache headers ----------
