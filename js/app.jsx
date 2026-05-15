@@ -263,8 +263,75 @@
 
   function exportFor(asset) {
     if (asset.format === 'jpeg') return { mime: 'image/jpeg', ext: 'jpg', opaque: true, quality: 0.95 };
-    return { mime: 'image/png', ext: 'png', opaque: false, quality: undefined };
+    // For PNG we always render opaque now (and we'll splice an sRGB chunk
+    // into the bytes before download — see finaliseBlob).
+    return { mime: 'image/png', ext: 'png', opaque: true, quality: undefined };
   }
+
+  // -------------------- PNG sRGB chunk injection --------------------
+  // canvas.toBlob('image/png') produces a PNG with NO sRGB chunk, even
+  // when the canvas was opened with colorSpace: 'srgb'. LinkedIn's image-
+  // moderation pipeline rejects metadata-less PNGs (verified: a Windows
+  // Snipping Tool screenshot of the SAME banner uploads fine because
+  // Windows writes sRGB metadata). We splice a standard sRGB chunk into
+  // the byte stream right after IHDR.
+
+  const PNG_SIG = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+
+  const CRC_TABLE = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c;
+    }
+    return t;
+  })();
+
+  function crc32(bytes) {
+    let crc = 0xFFFFFFFF;
+    for (let i = 0; i < bytes.length; i++) crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  function injectSRGBInPng(bytes) {
+    if (bytes.length < 33) return bytes;
+    for (let i = 0; i < 8; i++) if (bytes[i] !== PNG_SIG[i]) return bytes;
+    const ihdrEnd = 33; // PNG signature (8) + IHDR chunk (4 len + 4 type + 13 data + 4 crc = 25)
+    // Already has sRGB chunk right after IHDR? skip.
+    if (bytes[ihdrEnd + 4] === 0x73 && bytes[ihdrEnd + 5] === 0x52 &&
+        bytes[ihdrEnd + 6] === 0x47 && bytes[ihdrEnd + 7] === 0x42) {
+      return bytes;
+    }
+    // Build sRGB chunk: length=1, type "sRGB", data=0 (rendering intent: perceptual)
+    const typeAndData = new Uint8Array([0x73, 0x52, 0x47, 0x42, 0x00]);
+    const crc = crc32(typeAndData);
+    const chunk = new Uint8Array(13);
+    chunk[0] = 0; chunk[1] = 0; chunk[2] = 0; chunk[3] = 1; // length = 1
+    chunk.set(typeAndData, 4);
+    chunk[9]  = (crc >>> 24) & 0xff;
+    chunk[10] = (crc >>> 16) & 0xff;
+    chunk[11] = (crc >>>  8) & 0xff;
+    chunk[12] =  crc         & 0xff;
+    const out = new Uint8Array(bytes.length + chunk.length);
+    out.set(bytes.subarray(0, ihdrEnd), 0);
+    out.set(chunk, ihdrEnd);
+    out.set(bytes.subarray(ihdrEnd), ihdrEnd + chunk.length);
+    return out;
+  }
+
+  async function finaliseBlob(blob, mime) {
+    if (mime !== 'image/png') return blob;
+    try {
+      const buf = await blob.arrayBuffer();
+      const fixed = injectSRGBInPng(new Uint8Array(buf));
+      return new Blob([fixed], { type: 'image/png' });
+    } catch (e) {
+      console.warn('sRGB injection failed, returning original PNG', e);
+      return blob;
+    }
+  }
+
   function triggerDownload(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = filename;
@@ -308,8 +375,9 @@
         try {
           const ex = exportFor(asset);
           const canvas = await captureNode(node, asset.w, asset.h, { opaque: ex.opaque });
-          const blob = await canvasToBlob(canvas, ex.mime, ex.quality);
-          triggerDownload(blob, asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext);
+          const rawBlob = await canvasToBlob(canvas, ex.mime, ex.quality);
+          const finalBlob = await finaliseBlob(rawBlob, ex.mime);
+          triggerDownload(finalBlob, asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext);
         } catch (e) {
           console.error('Capture failed', e);
           alert('Could not generate that image. Try again, or refresh the page.');
@@ -341,8 +409,9 @@
           setProgress({ current: i + 1, total: frames.length, stage: 'Rendering ' + asset.label });
           const ex = exportFor(asset);
           const canvas = await captureNode(node, asset.w, asset.h, { opaque: ex.opaque });
-          const blob = await canvasToBlob(canvas, ex.mime, ex.quality);
-          zip.file(asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext, blob);
+          const rawBlob = await canvasToBlob(canvas, ex.mime, ex.quality);
+          const finalBlob = await finaliseBlob(rawBlob, ex.mime);
+          zip.file(asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext, finalBlob);
           await new Promise(r => setTimeout(r, 30));
         }
         setProgress({ current: frames.length, total: frames.length, stage: 'Bundling ZIP' });
