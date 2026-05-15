@@ -789,10 +789,12 @@
     );
   }
 
+  // format='jpeg' marks cover assets that LinkedIn/X/FB upload more reliably
+  // as JPEGs (no alpha channel, no PNG profile quirks, smaller file).
   const ASSETS = [
-    { id: 'linkedin_banner',     label: 'LinkedIn banner',                w: 1584, h: 396,  Comp: LinkedInBanner,         useLine: true,                    group: 'Cover rails (profile headers)' },
-    { id: 'x_header',            label: 'X header',                       w: 1500, h: 500,  Comp: XHeader,                useLine: true,                    group: 'Cover rails (profile headers)' },
-    { id: 'facebook_cover',      label: 'Facebook cover',                 w: 820,  h: 312,  Comp: FacebookCover,                                            group: 'Cover rails (profile headers)' },
+    { id: 'linkedin_banner',     label: 'LinkedIn banner',                w: 1584, h: 396,  Comp: LinkedInBanner,         useLine: true,                    format: 'jpeg', group: 'Cover rails (profile headers)' },
+    { id: 'x_header',            label: 'X header',                       w: 1500, h: 500,  Comp: XHeader,                useLine: true,                    format: 'jpeg', group: 'Cover rails (profile headers)' },
+    { id: 'facebook_cover',      label: 'Facebook cover',                 w: 820,  h: 312,  Comp: FacebookCover,                                            format: 'jpeg', group: 'Cover rails (profile headers)' },
     { id: 'instagram_curiosity', label: 'IG / LI feed (curiosity)',       w: 1080, h: 1080, Comp: InstagramCuriosity,                                       group: 'Feed posts (square)' },
     { id: 'instagram_stats',     label: 'IG / LI feed (stats)',           w: 1080, h: 1080, Comp: InstagramStats,                                           group: 'Feed posts (square)' },
     { id: 'story_curiosity',     label: 'Story (curiosity)',              w: 1080, h: 1920, Comp: InstagramStoryCuriosity,                                  group: 'Stories (vertical)' },
@@ -801,7 +803,7 @@
     { id: 'email_signature',     label: 'Email signature (light)',        w: 600,  h: 120,  Comp: EmailSignature,         forceLight: true,                 group: 'Email' },
     { id: 'email_signature_dark',label: 'Email signature (dark)',         w: 600,  h: 120,  Comp: EmailSignature,         forceDark: true,                  group: 'Email' },
     { id: 'email_banner',        label: 'Email banner (newsletter hero)', w: 1200, h: 400,  Comp: EmailBanner,                            usePromos: true,  group: 'Email' },
-    { id: 'zoom_background',     label: 'Zoom / Meet virtual background', w: 1920, h: 1080, Comp: ZoomBackground,                                           group: 'Virtual presence' },
+    { id: 'zoom_background',     label: 'Zoom / Meet virtual background', w: 1920, h: 1080, Comp: ZoomBackground,                         format: 'jpeg',   group: 'Virtual presence' },
     { id: 'business_card_front', label: 'Business card (front)',          w: 1050, h: 600,  Comp: BusinessCardFront,      noDark: true,                     group: 'Print' },
     { id: 'business_card_back',  label: 'Business card (back)',           w: 1050, h: 600,  Comp: BusinessCardBack,       noDark: true,                     group: 'Print' },
     { id: 'a4_onepager',         label: 'A4 one-pager',                   w: 794,  h: 1123, Comp: A4OnePager,             noDark: true,   usePromos: true,  group: 'Print' },
@@ -818,7 +820,7 @@
       <div className="artboard-wrap">
         <div className="artboard-meta">
           <div className="artboard-label">{asset.label + ' ' + MIDDOT + ' ' + w + 'x' + h}</div>
-          <button className="btn" onClick={() => window.__downloadOne && window.__downloadOne(ref.current, asset)}>Download PNG</button>
+          <button className="btn" onClick={() => window.__downloadOne && window.__downloadOne(ref.current, asset)}>{asset.format === 'jpeg' ? 'Download JPG' : 'Download PNG'}</button>
         </div>
         <div className="artboard-scaler" style={{ width: w * scale, height: h * scale }}>
           <div ref={ref} data-asset-id={asset.id} className="artboard-frame" style={{ width: w, height: h, transform: `scale(${scale})` }}>

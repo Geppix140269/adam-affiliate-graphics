@@ -206,7 +206,17 @@
 
   // ---------- Capture utilities ----------
 
-  async function captureNode(node, w, h) {
+  // Read the rendered background colour of the artboard's first element so
+  // JPEG export (no alpha channel) shows the right colour, not pure black.
+  function readBg(node) {
+    const inner = node.firstElementChild || node;
+    const cs = window.getComputedStyle(inner);
+    const bg = cs.backgroundColor;
+    if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') return '#FAF6EE';
+    return bg;
+  }
+
+  async function captureNode(node, w, h, opts = {}) {
     const wrapper = document.createElement('div');
     wrapper.style.cssText = 'position:fixed;left:-10000px;top:0;width:' + w + 'px;height:' + h + 'px;';
     const clone = node.cloneNode(true);
@@ -216,12 +226,25 @@
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
     try {
-      return await html2canvas(clone, { width: w, height: h, scale: 1, backgroundColor: null, useCORS: true, allowTaint: true, logging: false });
+      return await html2canvas(clone, {
+        width: w, height: h, scale: 1,
+        // For JPEG, force an opaque canvas background (no alpha → no black-fill surprises).
+        backgroundColor: opts.opaque ? (opts.bgColor || readBg(node)) : null,
+        useCORS: true, allowTaint: true, logging: false,
+      });
     } finally {
       document.body.removeChild(wrapper);
     }
   }
-  function canvasToBlob(canvas, type) { return new Promise((resolve) => canvas.toBlob(resolve, type || 'image/png')); }
+
+  function canvasToBlob(canvas, mime, quality) {
+    return new Promise((resolve) => canvas.toBlob(resolve, mime || 'image/png', quality));
+  }
+
+  function exportFor(asset) {
+    if (asset.format === 'jpeg') return { mime: 'image/jpeg', ext: 'jpg', opaque: true, quality: 0.94 };
+    return { mime: 'image/png', ext: 'png', opaque: false, quality: undefined };
+  }
   function triggerDownload(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = filename;
@@ -263,12 +286,13 @@
     useEffect(() => {
       window.__downloadOne = async (node, asset) => {
         try {
-          const canvas = await captureNode(node, asset.w, asset.h);
-          const blob = await canvasToBlob(canvas);
-          triggerDownload(blob, asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.png');
+          const ex = exportFor(asset);
+          const canvas = await captureNode(node, asset.w, asset.h, { opaque: ex.opaque });
+          const blob = await canvasToBlob(canvas, ex.mime, ex.quality);
+          triggerDownload(blob, asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext);
         } catch (e) {
           console.error('Capture failed', e);
-          alert('Could not generate that PNG. Try again, or refresh the page.');
+          alert('Could not generate that image. Try again, or refresh the page.');
         }
       };
       return () => { delete window.__downloadOne; };
@@ -295,9 +319,10 @@
           const asset = ASSETS.find(a => a.id === id);
           if (!asset) continue;
           setProgress({ current: i + 1, total: frames.length, stage: 'Rendering ' + asset.label });
-          const canvas = await captureNode(node, asset.w, asset.h);
-          const blob = await canvasToBlob(canvas);
-          zip.file(asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.png', blob);
+          const ex = exportFor(asset);
+          const canvas = await captureNode(node, asset.w, asset.h, { opaque: ex.opaque });
+          const blob = await canvasToBlob(canvas, ex.mime, ex.quality);
+          zip.file(asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext, blob);
           await new Promise(r => setTimeout(r, 30));
         }
         setProgress({ current: frames.length, total: frames.length, stage: 'Bundling ZIP' });
