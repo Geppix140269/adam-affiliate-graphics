@@ -150,6 +150,64 @@ html, body { margin: 0; padding: 0; background: var(--canvas); font-family: "Int
 .artboard-scaler { background: #fff; border-radius: 8px; box-shadow: 0 1px 0 rgba(15,27,45,0.06); overflow: hidden; }
 .artboard-frame { transform-origin: top left; }
 
+/* ---------- Content section (captions / emails / DMs / pitches / FAQ / QR) ---------- */
+.content-section { margin-top: 56px; max-width: 1100px; }
+.content-section-intro { font-size: 14px; color: rgba(15,27,45,0.65); line-height: 1.55; margin: -10px 0 20px; max-width: 720px; }
+.content-card { background: #fff; border: 1px solid rgba(15,27,45,0.1); border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+.content-card[open] { box-shadow: 0 1px 0 rgba(15,27,45,0.05); }
+.content-card > summary { list-style: none; cursor: pointer; padding: 18px 22px; display: flex; align-items: baseline; gap: 14px; user-select: none; transition: background 0.15s; }
+.content-card > summary::-webkit-details-marker { display: none; }
+.content-card > summary:hover { background: rgba(45,138,126,0.04); }
+.content-card-title { font-size: 17px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+.content-card-sub { font-size: 13px; color: rgba(15,27,45,0.55); flex: 1; line-height: 1.4; }
+.content-card-chevron { color: rgba(15,27,45,0.4); font-size: 14px; transition: transform 0.2s; }
+.content-card[open] .content-card-chevron { transform: rotate(180deg); }
+.content-card-body { padding: 4px 22px 22px; border-top: 1px solid rgba(15,27,45,0.06); }
+
+.caption-section h3,
+.email-block h3,
+.pitch-block h3 { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink); margin: 22px 0 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(15,27,45,0.08); text-transform: uppercase; }
+.caption-section:first-child h3,
+.email-block:first-of-type h3,
+.pitch-block:first-of-type h3 { margin-top: 12px; }
+
+.copy-block { background: var(--paper); border: 1px solid rgba(15,27,45,0.1); border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+.copy-block pre { font-family: "Inter", sans-serif; font-size: 14px; line-height: 1.55; color: var(--ink); margin: 0 0 12px; white-space: pre-wrap; word-wrap: break-word; }
+.copy-block-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
+
+.copy-btn { background: var(--teal); color: #fff; border: 0; border-radius: 6px; padding: 7px 14px; font-family: "Inter", sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; transition: background 0.15s; }
+.copy-btn:hover { background: var(--teal-hi); }
+.copy-btn.copied { background: #1f6b62; }
+
+.recipient-row { background: var(--paper); border: 1px solid rgba(45,138,126,0.3); border-radius: 8px; padding: 14px 16px; margin: 10px 0 18px; display: flex; flex-direction: column; gap: 6px; }
+.recipient-row label { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-family: "JetBrains Mono", monospace; color: var(--teal); font-weight: 500; }
+.recipient-row input { background: #fff; border: 1px solid rgba(15,27,45,0.14); border-radius: 6px; padding: 9px 11px; font-family: "Inter", sans-serif; font-size: 14px; outline: none; max-width: 320px; }
+.recipient-row input:focus { border-color: var(--teal); }
+
+.email-subject { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; padding: 10px 14px; background: rgba(45,138,126,0.06); border-radius: 6px; border: 1px solid rgba(45,138,126,0.18); }
+.email-subject-label { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(15,27,45,0.55); font-weight: 500; }
+.email-subject-value { flex: 1; font-size: 14px; font-weight: 500; color: var(--ink); min-width: 200px; }
+
+.dm-block { margin-bottom: 6px; }
+.dm-label { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(15,27,45,0.55); font-weight: 500; margin: 12px 0 6px; }
+
+.faq-item { background: var(--paper); border: 1px solid rgba(15,27,45,0.08); border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
+.faq-item > summary { padding: 12px 16px; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer; list-style: none; }
+.faq-item > summary::-webkit-details-marker { display: none; }
+.faq-item > summary:hover { background: rgba(15,27,45,0.03); }
+.faq-item[open] > summary { border-bottom: 1px solid rgba(15,27,45,0.08); }
+.faq-answer { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.faq-answer p { margin: 0; font-size: 13px; line-height: 1.55; color: rgba(15,27,45,0.78); }
+.faq-answer .copy-btn { align-self: flex-end; }
+
+.qr-row { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; padding: 10px 0; }
+.qr-preview { background: #fff; padding: 10px; border: 1px solid rgba(15,27,45,0.1); border-radius: 8px; display: inline-block; }
+.qr-actions { display: flex; flex-direction: column; gap: 8px; min-width: 280px; flex: 1; }
+.qr-action-row { display: flex; gap: 8px; }
+.qr-action-row .copy-btn { width: 100%; text-align: left; padding: 10px 14px; font-size: 13px; }
+.qr-hint { font-size: 12px; color: rgba(15,27,45,0.55); line-height: 1.5; margin-top: 6px; }
+.qr-error { padding: 10px 12px; background: rgba(208,74,59,0.08); border: 1px solid rgba(208,74,59,0.25); border-radius: 6px; color: #8B2C20; font-size: 13px; margin-bottom: 12px; }
+
 /* ---------- Co-brand setup strip ---------- */
 .cobrand-strip { background: #fff; border-bottom: 1px solid rgba(15,27,45,0.08); padding: 20px 28px; max-width: none; }
 .cobrand-strip-head { display: flex; align-items: baseline; gap: 14px; max-width: 1600px; margin: 0 auto 12px; }

@@ -10,7 +10,9 @@
  */
 (function () {
   const { useState, useEffect, useMemo, useRef } = React;
-  const { ASSETS, POSITIONING_LINES, MIDDOT, Artboard } = window.AGK;
+  const { ASSETS, POSITIONING_LINES, MIDDOT, Artboard, ContentSection,
+    buildCaptionsTxt, buildEmailsTxt, buildDmsTxt, buildPitchesTxt, buildFaqTxt,
+    renderQrToCanvas, canvasToPngBlob } = window.AGK;
 
   const ADMIN_KEY = '1';
   const CONTACT_EMAIL = 'ceo@adamftd.com';
@@ -554,6 +556,32 @@
           }
           await new Promise(r => setTimeout(r, 30));
         }
+        // Add the content modules as text files + QR PNGs
+        setProgress({ current: frames.length, total: frames.length, stage: 'Adding captions, emails, DMs, pitches, FAQ' });
+        try {
+          if (buildCaptionsTxt) zip.file('content/captions.txt', buildCaptionsTxt(aff));
+          if (buildEmailsTxt)   zip.file('content/emails.txt',   buildEmailsTxt(aff));
+          if (buildDmsTxt)      zip.file('content/dms.txt',      buildDmsTxt(aff));
+          if (buildPitchesTxt)  zip.file('content/elevator_pitches.txt', buildPitchesTxt(aff));
+          if (buildFaqTxt)      zip.file('content/faq.txt',      buildFaqTxt(aff));
+        } catch (e) {
+          console.warn('Could not add content text files', e);
+        }
+        // QR codes (transparent + white bg)
+        try {
+          if (renderQrToCanvas && canvasToPngBlob) {
+            const qrUrl = 'https://adamftd.com/ref/' + aff.code;
+            setProgress({ current: frames.length, total: frames.length, stage: 'Generating QR codes' });
+            const wCanvas = renderQrToCanvas(qrUrl, 1000, '#FFFFFF');
+            const wBlob = await canvasToPngBlob(wCanvas);
+            if (wBlob) zip.file('content/qr_white_' + aff.code + '.png', wBlob);
+            const tCanvas = renderQrToCanvas(qrUrl, 1000, 'transparent');
+            const tBlob = await canvasToPngBlob(tCanvas);
+            if (tBlob) zip.file('content/qr_transparent_' + aff.code + '.png', tBlob);
+          }
+        } catch (e) {
+          console.warn('Could not add QR codes to zip', e);
+        }
         setProgress({ current: frames.length, total: frames.length, stage: 'Bundling ZIP' });
         const zipBlob = await zip.generateAsync({ type: 'blob' });
         const today = new Date().toISOString().slice(0, 10);
@@ -632,6 +660,7 @@
               })}
             </section>
           ))}
+          {ContentSection && <ContentSection aff={aff} />}
         </div>
 
         {progress && (
