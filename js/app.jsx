@@ -11,6 +11,7 @@
 (function () {
   const { useState, useEffect, useMemo, useRef } = React;
   const { ASSETS, POSITIONING_LINES, MIDDOT, Artboard, ContentSection,
+    CaptionsCard, EmailsCard, DmsCard, PitchesCard, FaqCard, QrCard, PersonalLinksCard,
     buildCaptionsTxt, buildEmailsTxt, buildDmsTxt, buildPitchesTxt, buildFaqTxt,
     renderQrToCanvas, canvasToPngBlob } = window.AGK;
 
@@ -52,7 +53,10 @@
       if (!key.trim()) { setError('Paste your access key (from your welcome email) to continue.'); return; }
       setBusy(true); setError(null);
       try {
-        const data = await validateKey(key);
+        const trimmed = key.trim();
+        const data = await validateKey(trimmed);
+        // Persist for next visit on this device
+        try { window.localStorage.setItem('adamftd_kit_key', trimmed); } catch (_) {}
         onResolve(data);
       } catch (err) {
         setError(err.message + ' Check your welcome email, or write to ' + CONTACT_EMAIL + '.');
@@ -410,7 +414,7 @@
 
   // ---------- Generator ----------
 
-  function Generator({ initialAff, cobrandedPartner, promotions, adminMode, onLogout }) {
+  function Generator({ initialAff, cobrandedPartner, promotions, adminMode, onSignOut }) {
     const [aff, setAff] = useState(initialAff);
     const [mode, setMode] = useState('light');
     const [line, setLine] = useState(POSITIONING_LINES[0]);
@@ -512,14 +516,83 @@
       return () => { delete window.__downloadOne; delete window.__screenshotMode; };
     }, [aff.code, !!cobrand]);
 
-    const groups = useMemo(() => {
-      const out = []; const seen = {};
+    // Map the existing asset `group` labels (kept untouched for ZIP/
+    // backwards compat) onto the new sub-section IDs used by the sidebar.
+    const GROUP_TO_SUB = useMemo(() => ({
+      'Cover rails (profile headers)': { id: 'covers', label: 'Covers' },
+      'Feed posts (square)':           { id: 'feed-posts', label: 'Feed posts' },
+      'Stories (vertical)':            { id: 'stories', label: 'Stories' },
+      'Share card (OG / X)':           { id: 'share-card', label: 'Share card' },
+      'Email':                         { id: 'email-graphics', label: 'Email graphics' },
+      'Virtual presence':              { id: 'virtual', label: 'Virtual' },
+      'Print':                         { id: 'print', label: 'Print' },
+    }), []);
+
+    const graphicsSubs = useMemo(() => {
+      const out = []; const byId = {};
       for (const a of ASSETS) {
-        if (!seen[a.group]) { seen[a.group] = []; out.push({ name: a.group, items: seen[a.group] }); }
-        seen[a.group].push(a);
+        const map = GROUP_TO_SUB[a.group];
+        if (!map) continue;
+        if (!byId[map.id]) {
+          byId[map.id] = { id: map.id, label: map.label, items: [] };
+          out.push(byId[map.id]);
+        }
+        byId[map.id].items.push(a);
       }
       return out;
-    }, []);
+    }, [GROUP_TO_SUB]);
+
+    // Sidebar IA — the navigation backbone.
+    const NAV_SECTIONS = useMemo(() => [
+      {
+        id: 'graphics', label: 'Graphics', icon: '📁',
+        sub: graphicsSubs.map(g => ({ id: g.id, label: g.label })),
+      },
+      {
+        id: 'content', label: 'Content', icon: '✍️',
+        sub: [
+          { id: 'captions', label: 'Captions' },
+          { id: 'emails',   label: 'Email templates' },
+          { id: 'dms',      label: 'DM / WhatsApp' },
+          { id: 'pitches',  label: 'Elevator pitches' },
+          { id: 'faq',      label: 'FAQ' },
+        ],
+      },
+      {
+        id: 'tools', label: 'Tools', icon: '🔳',
+        sub: [
+          { id: 'qr',    label: 'Personal QR code' },
+          { id: 'links', label: 'Personal links' },
+        ],
+      },
+      {
+        id: 'download', label: 'Download', icon: '📦',
+        sub: [],
+      },
+    ], [graphicsSubs]);
+
+    // Scroll-spy — highlight the sub-section currently in view.
+    const [activeSub, setActiveSub] = useState('graphics');
+    useEffect(() => {
+      const els = document.querySelectorAll('[data-sub-id]');
+      if (els.length === 0) return;
+      const obs = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter(e => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length) setActiveSub(visible[0].target.dataset.subId);
+      }, { rootMargin: '-130px 0px -55% 0px', threshold: 0 });
+      els.forEach(el => obs.observe(el));
+      return () => obs.disconnect();
+    }, [graphicsSubs.length]);
+
+    function smoothScrollTo(id, e) {
+      if (e) e.preventDefault();
+      const target = document.getElementById(id);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    const totalGraphics = ASSETS.length;
 
     async function downloadAllZip() {
       if (typeof JSZip === 'undefined') { alert('ZIP library failed to load. Refresh and try again.'); return; }
@@ -631,12 +704,13 @@
               </div>
             )}
             <button className="btn" onClick={downloadAllZip}>Download all (ZIP)</button>
+            <button className="signout-link" onClick={onSignOut} title="Clear your saved key on this device">Sign out</button>
             {adminMode && (
               <div className="admin-row">
                 <div className="field"><label>First name (admin)</label><input value={aff.first_name} onChange={(e) => adminUpdate('first_name', e.target.value)} /></div>
                 <div className="field"><label>Full name (admin)</label><input value={aff.full_name} onChange={(e) => adminUpdate('full_name', e.target.value)} /></div>
                 <div className="field"><label>Code (admin)</label><input className="code" value={aff.code} onChange={(e) => adminUpdate('code', e.target.value)} /></div>
-                <button className="btn secondary" onClick={onLogout} style={{ marginLeft: 'auto' }}>Reset gate</button>
+                <button className="btn secondary" onClick={onSignOut} style={{ marginLeft: 'auto' }}>Reset gate</button>
               </div>
             )}
           </div>
@@ -646,21 +720,141 @@
           <CobrandSetup partner={partner} onChange={setPartner} />
         )}
 
-        <div className="canvas">
-          {welcomeOpen
-            ? <Welcome aff={aff} promos={promotions || []} onDismiss={() => setWelcomeOpen(false)} />
-            : <button className="show-welcome-pill" onClick={() => setWelcomeOpen(true)}>Show welcome</button>
-          }
-          {groups.map(g => (
-            <section className="section" key={g.name}>
-              <header className="section-header"><h2>{g.name}</h2></header>
-              {g.items.map(asset => {
-                const scale = Math.min(1, maxArtboardW / asset.w);
-                return <Artboard key={asset.id} asset={asset} aff={aff} dark={dark} line={line} scale={scale} cobrand={cobrand} promos={promos} />;
-              })}
-            </section>
+        {/* Mobile horizontal pill bar — top-level sections only */}
+        <nav className="kit-mobile-nav" aria-label="Kit sections (mobile)">
+          {NAV_SECTIONS.map(s => (
+            <a
+              key={s.id}
+              href={'#' + s.id}
+              onClick={(e) => smoothScrollTo(s.id, e)}
+              className={(activeSub === s.id || s.sub.some(x => x.id === activeSub)) ? 'active' : ''}
+            >
+              <span className="kit-mobile-icon">{s.icon}</span> {s.label}
+            </a>
           ))}
-          {ContentSection && <ContentSection aff={aff} />}
+        </nav>
+
+        <div className="kit-layout">
+          {/* Desktop sidebar */}
+          <aside className="kit-sidebar" aria-label="Kit navigation">
+            <nav>
+              {NAV_SECTIONS.map(s => (
+                <div className="kit-sidebar-section" key={s.id}>
+                  <a
+                    href={'#' + s.id}
+                    onClick={(e) => smoothScrollTo(s.id, e)}
+                    className={'kit-sidebar-top' + ((activeSub === s.id || s.sub.some(x => x.id === activeSub)) ? ' active' : '')}
+                  >
+                    <span className="kit-sidebar-icon" aria-hidden>{s.icon}</span>
+                    <span>{s.label}</span>
+                  </a>
+                  {s.sub.map(sub => (
+                    <a
+                      key={sub.id}
+                      href={'#' + sub.id}
+                      onClick={(e) => smoothScrollTo(sub.id, e)}
+                      className={'kit-sidebar-sub' + (activeSub === sub.id ? ' active' : '')}
+                    >{sub.label}</a>
+                  ))}
+                </div>
+              ))}
+            </nav>
+          </aside>
+
+          {/* Main pane */}
+          <main className="kit-main">
+            {/* Welcome line + hero cards */}
+            <div className="kit-greeting">Welcome, {aff.first_name}.</div>
+            <div className="hero-cards">
+              <a href="#graphics" className="hero-card" onClick={(e) => smoothScrollTo('graphics', e)}>
+                <span className="hero-card-icon" aria-hidden>📁</span>
+                <span className="hero-card-title">Graphics</span>
+                <span className="hero-card-meta">{totalGraphics} personalised assets</span>
+              </a>
+              <a href="#content" className="hero-card" onClick={(e) => smoothScrollTo('content', e)}>
+                <span className="hero-card-icon" aria-hidden>✍️</span>
+                <span className="hero-card-title">Content</span>
+                <span className="hero-card-meta">60+ copy blocks</span>
+              </a>
+              <a href="#tools" className="hero-card" onClick={(e) => smoothScrollTo('tools', e)}>
+                <span className="hero-card-icon" aria-hidden>🔳</span>
+                <span className="hero-card-title">Tools</span>
+                <span className="hero-card-meta">QR code + ref link</span>
+              </a>
+              <a href="#download" className="hero-card" onClick={(e) => smoothScrollTo('download', e)}>
+                <span className="hero-card-icon" aria-hidden>📦</span>
+                <span className="hero-card-title">Download</span>
+                <span className="hero-card-meta">Full ZIP bundle</span>
+              </a>
+            </div>
+
+            {welcomeOpen
+              ? <Welcome aff={aff} promos={promotions || []} onDismiss={() => setWelcomeOpen(false)} />
+              : <button className="show-welcome-pill" onClick={() => setWelcomeOpen(true)}>Show welcome</button>
+            }
+
+            {/* SECTION: Graphics */}
+            <section className="ia-section" id="graphics">
+              <h2 className="ia-section-h">📁 Graphics</h2>
+              {graphicsSubs.map(g => (
+                <div className="ia-sub" id={g.id} data-sub-id={g.id} key={g.id}>
+                  <h3 className="ia-sub-h">{g.label}</h3>
+                  {g.items.map(asset => {
+                    const scale = Math.min(1, maxArtboardW / asset.w);
+                    return <Artboard key={asset.id} asset={asset} aff={aff} dark={dark} line={line} scale={scale} cobrand={cobrand} promos={promos} />;
+                  })}
+                </div>
+              ))}
+            </section>
+
+            {/* SECTION: Content */}
+            <section className="ia-section" id="content">
+              <h2 className="ia-section-h">✍️ Content</h2>
+              <div className="ia-sub" id="captions" data-sub-id="captions">
+                <h3 className="ia-sub-h">Captions</h3>
+                <CaptionsCard aff={aff} inline />
+              </div>
+              <div className="ia-sub" id="emails" data-sub-id="emails">
+                <h3 className="ia-sub-h">Email templates</h3>
+                <EmailsCard aff={aff} inline />
+              </div>
+              <div className="ia-sub" id="dms" data-sub-id="dms">
+                <h3 className="ia-sub-h">DM / WhatsApp / Telegram</h3>
+                <DmsCard aff={aff} inline />
+              </div>
+              <div className="ia-sub" id="pitches" data-sub-id="pitches">
+                <h3 className="ia-sub-h">Elevator pitches</h3>
+                <PitchesCard aff={aff} inline />
+              </div>
+              <div className="ia-sub" id="faq" data-sub-id="faq">
+                <h3 className="ia-sub-h">FAQ</h3>
+                <FaqCard aff={aff} inline />
+              </div>
+            </section>
+
+            {/* SECTION: Tools */}
+            <section className="ia-section" id="tools">
+              <h2 className="ia-section-h">🔳 Tools</h2>
+              <div className="ia-sub" id="qr" data-sub-id="qr">
+                <h3 className="ia-sub-h">Personal QR code</h3>
+                <QrCard aff={aff} inline />
+              </div>
+              <div className="ia-sub" id="links" data-sub-id="links">
+                <h3 className="ia-sub-h">Personal links</h3>
+                <PersonalLinksCard aff={aff} inline />
+              </div>
+            </section>
+
+            {/* SECTION: Download */}
+            <section className="ia-section" id="download" data-sub-id="download">
+              <h2 className="ia-section-h">📦 Download</h2>
+              <div className="ia-download-block">
+                <p>Get every asset (15 graphics + 5 text files + 2 QR codes) bundled into a single ZIP.</p>
+                <button className="btn btn-large" onClick={downloadAllZip}>Download all (ZIP)</button>
+                <div className="ia-download-hint">First click can take ~30 seconds while we render the LinkedIn / X / Facebook covers server-side. Subsequent downloads are faster.</div>
+              </div>
+            </section>
+          </main>
         </div>
 
         {progress && (
@@ -679,15 +873,26 @@
 
   // ---------- Root ----------
 
+  // localStorage key persistence
+  const STORAGE_KEY = 'adamftd_kit_key';
+  function getStoredKey() {
+    try { return window.localStorage.getItem(STORAGE_KEY); } catch (_) { return null; }
+  }
+  function setStoredKey(k) {
+    try { window.localStorage.setItem(STORAGE_KEY, k); } catch (_) {}
+  }
+  function clearStoredKey() {
+    try { window.localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+  }
+
   function App() {
     const urlParams = new URLSearchParams(window.location.search);
     const adminParam = urlParams.get('admin');
     const keyFromUrl = urlParams.get('key');
     const adminMode = adminParam != null && adminParam === ADMIN_KEY;
 
-    const [resolved, setResolved] = useState(null); // { affiliate, cobranded }
-    const [bootError, setBootError] = useState(null);
-    const [booting, setBooting] = useState(!!keyFromUrl);
+    const [resolved, setResolved] = useState(null);
+    const [booting, setBooting] = useState(!!keyFromUrl || (!!getStoredKey() && !adminMode));
 
     useEffect(() => {
       if (adminMode) {
@@ -697,32 +902,63 @@
         });
         return;
       }
-      if (!keyFromUrl) return;
       (async () => {
-        try {
-          const data = await validateKey(keyFromUrl);
-          setResolved(data);
-          // Strip the key from the URL so it isn't kept in history/screenshots
+        // 1. URL key takes precedence — first-time arrival from welcome email
+        if (keyFromUrl) {
           try {
-            const url = new URL(window.location.href);
-            url.searchParams.delete('key');
-            window.history.replaceState({}, '', url.toString());
-          } catch (_) {}
-        } catch (e) {
-          setBootError(e.message);
-        } finally {
+            const data = await validateKey(keyFromUrl);
+            setStoredKey(keyFromUrl);
+            setResolved(data);
+            // Strip the key from the URL once it's safely persisted
+            try {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('key');
+              window.history.replaceState({}, '', url.toString());
+            } catch (_) {}
+          } catch (_) {
+            // Bad URL key: fall through to stored-key try (or gate)
+          } finally {
+            // Try stored key if URL key failed
+            if (!resolved) await tryStored();
+          }
           setBooting(false);
+          return;
         }
+        // 2. Stored key from prior visit
+        await tryStored();
+        setBooting(false);
       })();
+
+      async function tryStored() {
+        const stored = getStoredKey();
+        if (!stored) return;
+        try {
+          const data = await validateKey(stored);
+          setResolved(data);
+        } catch (_) {
+          // Stored key no longer valid (e.g. admin regenerated it)
+          clearStoredKey();
+        }
+      }
     }, []);
 
-    if (booting) return <div className="boot">Checking your access key...</div>;
+    function handleResolve(data) {
+      // Called from Gate after successful submission. Persist the key the
+      // gate validated (we don't have it directly, but we can store the
+      // input the user typed via a callback ref). The Gate component now
+      // calls setStoredKey itself on success.
+      setResolved(data);
+    }
+
+    function handleSignOut() {
+      clearStoredKey();
+      setResolved(null);
+    }
+
+    if (booting) return <div className="boot">Loading your kit...</div>;
 
     if (!resolved) {
-      return <Gate
-        onResolve={setResolved}
-        prefill=""
-      />;
+      return <Gate onResolve={handleResolve} />;
     }
 
     return <Generator
@@ -730,7 +966,7 @@
       cobrandedPartner={resolved.cobranded}
       promotions={resolved.promotions || []}
       adminMode={adminMode}
-      onLogout={() => setResolved(null)}
+      onSignOut={handleSignOut}
     />;
   }
 

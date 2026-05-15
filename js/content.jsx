@@ -580,7 +580,16 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
     );
   }
 
-  function ContentCard({ id, title, subtitle, defaultOpen, children }) {
+  function ContentCard({ id, title, subtitle, defaultOpen, children, inline }) {
+    // Inline mode = no <details> wrapper; the parent sub-section renders
+    // the heading. Used by the new sidebar-driven layout.
+    if (inline) {
+      return (
+        <div className="content-card-inline" id={'card-' + id}>
+          {children}
+        </div>
+      );
+    }
     return (
       <details className="content-card" open={!!defaultOpen} id={'card-' + id}>
         <summary>
@@ -597,10 +606,10 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
   // Card: Captions
   // -----------------------------------------------------------------
 
-  function CaptionsCard({ aff }) {
+  function CaptionsCard({ aff, inline }) {
     const v = useMemo(() => partnerVars(aff), [aff]);
     return (
-      <ContentCard id="captions" title="Caption packs" subtitle="31 ready-to-post captions across LinkedIn, Instagram, stories, and share-card posts">
+      <ContentCard inline={inline} id="captions" title="Caption packs" subtitle="31 ready-to-post captions across LinkedIn, Instagram, stories, and share-card posts">
         {Object.entries(CAPTIONS).map(([section, items]) => (
           <div key={section} className="caption-section">
             <h3>{section}</h3>
@@ -617,7 +626,7 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
   // Card: Emails (with recipient name input)
   // -----------------------------------------------------------------
 
-  function EmailsCard({ aff }) {
+  function EmailsCard({ aff, inline }) {
     const [recipientFirstName, setRecipientFirstName] = useState('');
     const v = useMemo(() => {
       const base = partnerVars(aff);
@@ -625,7 +634,7 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
     }, [aff, recipientFirstName]);
 
     return (
-      <ContentCard id="emails" title="Email templates" subtitle="6 cold + warm templates, ready to paste into Gmail / Outlook">
+      <ContentCard inline={inline} id="emails" title="Email templates" subtitle="6 cold + warm templates, ready to paste into Gmail / Outlook">
         <div className="recipient-row">
           <label>Recipient's first name (substitutes into every template)</label>
           <input
@@ -661,10 +670,10 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
   // Card: DMs
   // -----------------------------------------------------------------
 
-  function DmsCard({ aff }) {
+  function DmsCard({ aff, inline }) {
     const v = useMemo(() => partnerVars(aff), [aff]);
     return (
-      <ContentCard id="dms" title="DM / WhatsApp / Telegram" subtitle="5 short shareable messages for direct conversations">
+      <ContentCard inline={inline} id="dms" title="DM / WhatsApp / Telegram" subtitle="5 short shareable messages for direct conversations">
         {DMS.map((d, i) => (
           <div key={i} className="dm-block">
             <div className="dm-label">{(i + 1) + '. ' + d.label}</div>
@@ -679,10 +688,10 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
   // Card: Elevator pitches
   // -----------------------------------------------------------------
 
-  function PitchesCard({ aff }) {
+  function PitchesCard({ aff, inline }) {
     const v = useMemo(() => partnerVars(aff), [aff]);
     return (
-      <ContentCard id="pitches" title="Elevator pitches" subtitle="15, 30, and 60-second scripts for in-person and podcast">
+      <ContentCard inline={inline} id="pitches" title="Elevator pitches" subtitle="15, 30, and 60-second scripts for in-person and podcast">
         {PITCHES.map((p, i) => (
           <div key={i} className="pitch-block">
             <h3>{p.label}</h3>
@@ -697,10 +706,10 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
   // Card: FAQ
   // -----------------------------------------------------------------
 
-  function FaqCard({ aff }) {
+  function FaqCard({ aff, inline }) {
     const v = useMemo(() => partnerVars(aff), [aff]);
     return (
-      <ContentCard id="faq" title="Objection-handling FAQ" subtitle="12 prospect questions with crisp answers, ready to paste into a reply">
+      <ContentCard inline={inline} id="faq" title="Objection-handling FAQ" subtitle="12 prospect questions with crisp answers, ready to paste into a reply">
         {FAQ.map((item, i) => {
           const answer = subst(item.a, v);
           return (
@@ -721,7 +730,7 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
   // Card: QR code
   // -----------------------------------------------------------------
 
-  function QrCard({ aff }) {
+  function QrCard({ aff, inline }) {
     const transparentRef = useRef(null);
     const whiteRef = useRef(null);
     const fullUrl = 'https://adamftd.com/ref/' + aff.code;
@@ -753,7 +762,7 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
     }
 
     return (
-      <ContentCard id="qr" title="Personal QR code" subtitle={'Scans to ' + fullUrl}>
+      <ContentCard inline={inline} id="qr" title="Personal QR code" subtitle={'Scans to ' + fullUrl}>
         {err && <div className="qr-error">QR generation failed: {err}</div>}
         <div className="qr-row">
           <div ref={transparentRef} className="qr-preview" aria-label="QR code preview" />
@@ -769,6 +778,50 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
             </div>
             <div className="qr-hint">
               Encodes the full URL with https. Error-correction level H, so a small overlay would not break the scan.
+            </div>
+          </div>
+        </div>
+      </ContentCard>
+    );
+  }
+
+  // -----------------------------------------------------------------
+  // Card: Personal links (Tools section)
+  // -----------------------------------------------------------------
+
+  function PersonalLinksCard({ aff, inline }) {
+    const fullUrl = 'https://adamftd.com/ref/' + aff.code;
+    const shortUrl = 'adamftd.com/ref/' + aff.code;
+    const upperCode = aff.code.toUpperCase();
+    return (
+      <ContentCard inline={inline} id="links" title="Personal links" subtitle="Your URL and code, ready to copy anywhere">
+        <div className="personal-links">
+          <div className="link-row">
+            <label>Your full referral URL (with https)</label>
+            <div className="link-value">
+              <code>{fullUrl}</code>
+              <CopyButton getText={() => fullUrl} />
+            </div>
+          </div>
+          <div className="link-row">
+            <label>Short referral URL (for graphics, captions, signatures)</label>
+            <div className="link-value">
+              <code>{shortUrl}</code>
+              <CopyButton getText={() => shortUrl} />
+            </div>
+          </div>
+          <div className="link-row">
+            <label>Your referral code (UPPERCASE, for "USE CODE" display)</label>
+            <div className="link-value">
+              <code>{upperCode}</code>
+              <CopyButton getText={() => upperCode} />
+            </div>
+          </div>
+          <div className="link-row">
+            <label>Code slug (lowercase, used inside URLs)</label>
+            <div className="link-value">
+              <code>{aff.code}</code>
+              <CopyButton getText={() => aff.code} />
             </div>
           </div>
         </div>
@@ -805,6 +858,7 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
 
   window.AGK = Object.assign(window.AGK || {}, {
     ContentSection,
+    CaptionsCard, EmailsCard, DmsCard, PitchesCard, FaqCard, QrCard, PersonalLinksCard,
     buildCaptionsTxt,
     buildEmailsTxt,
     buildDmsTxt,
