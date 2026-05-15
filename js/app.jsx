@@ -225,13 +225,33 @@
     clone.style.height = h + 'px';
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
+    const targetBg = opts.bgColor || readBg(node);
     try {
-      return await html2canvas(clone, {
+      const raw = await html2canvas(clone, {
         width: w, height: h, scale: 1,
-        // For JPEG, force an opaque canvas background (no alpha → no black-fill surprises).
-        backgroundColor: opts.opaque ? (opts.bgColor || readBg(node)) : null,
+        backgroundColor: opts.opaque ? targetBg : null,
         useCORS: true, allowTaint: true, logging: false,
       });
+
+      // Re-blit through a clean canvas with explicit integer dims, no
+      // alpha channel, and sRGB colour space. This produces a JPEG with
+      // proper colour-space metadata and clean dimensions — html2canvas's
+      // raw output sometimes ships without these, which LinkedIn (and
+      // some other CDNs) silently reject.
+      const ctxOpts = { colorSpace: 'srgb' };
+      if (opts.opaque) ctxOpts.alpha = false;
+      const clean = document.createElement('canvas');
+      clean.width = w;
+      clean.height = h;
+      const ctx = clean.getContext('2d', ctxOpts);
+      if (opts.opaque) {
+        ctx.fillStyle = targetBg;
+        ctx.fillRect(0, 0, w, h);
+      }
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(raw, 0, 0, w, h);
+      return clean;
     } finally {
       document.body.removeChild(wrapper);
     }
@@ -242,7 +262,7 @@
   }
 
   function exportFor(asset) {
-    if (asset.format === 'jpeg') return { mime: 'image/jpeg', ext: 'jpg', opaque: true, quality: 0.94 };
+    if (asset.format === 'jpeg') return { mime: 'image/jpeg', ext: 'jpg', opaque: true, quality: 0.95 };
     return { mime: 'image/png', ext: 'png', opaque: false, quality: undefined };
   }
   function triggerDownload(blob, filename) {
