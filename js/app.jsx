@@ -117,6 +117,11 @@
           </>
         )}
 
+        <div className="rules-head">For your LinkedIn / X / Facebook cover</div>
+        <ul className="rules">
+          <li>Click <strong>Screenshot mode</strong> on the cover artboard (not Download PNG). A new tab opens with the banner at full size. Press <code>Win + Shift + S</code>, drag a rectangle around the banner, and save the screenshot. Upload that to LinkedIn. This works around a known issue where LinkedIn rejects browser-generated PNGs.</li>
+        </ul>
+
         <div className="rules-head">Three rules to keep the kit working</div>
         <ul className="rules">
           <li>Use the assets as-generated. Don't crop, recolour, or overlay other text.</li>
@@ -383,7 +388,54 @@
           alert('Could not generate that image. Try again, or refresh the page.');
         }
       };
-      return () => { delete window.__downloadOne; };
+
+      // Screenshot mode: opens the rendered banner at native resolution in
+      // a new tab so the user can capture it with Win+Shift+S. A Windows
+      // Snipping Tool screenshot is the ONE format we've confirmed
+      // LinkedIn accepts. Browser canvas.toBlob output isn't accepted
+      // regardless of sRGB injection / JPEG / opaque background.
+      window.__screenshotMode = async (node, asset) => {
+        try {
+          const canvas = await captureNode(node, asset.w, asset.h, { opaque: true });
+          const dataUrl = canvas.toDataURL('image/png');
+          const win = window.open('', '_blank');
+          if (!win) {
+            alert('Pop-up was blocked. Allow pop-ups for this site and try again.');
+            return;
+          }
+          const safeLabel = asset.label.replace(/[<>&"']/g, '');
+          win.document.open();
+          win.document.write([
+            '<!doctype html><html lang="en"><head><meta charset="utf-8" />',
+            '<title>Screenshot ' + safeLabel + '</title>',
+            '<style>',
+            'html,body{margin:0;padding:0;background:#1a1a1a;color:#fff;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;min-height:100vh}',
+            'main{padding:32px 24px;display:flex;flex-direction:column;align-items:center;gap:24px}',
+            'h1{margin:0;font-size:14px;font-weight:500;letter-spacing:0.02em;color:#eef3fa}',
+            'h1 small{color:#5A6B85;font-weight:400;margin-left:8px}',
+            '.hint{max-width:720px;font-size:13px;line-height:1.55;color:#bbb;text-align:center;background:#222;padding:16px 20px;border-radius:8px;border:1px solid #333}',
+            '.hint b{color:#3FB5A4}',
+            '.hint kbd{background:#333;color:#fff;padding:2px 7px;border-radius:4px;font-family:Consolas,Menlo,monospace;font-size:12px;border:1px solid #444}',
+            '.frame{box-shadow:0 8px 40px rgba(0,0,0,0.6);background:#fff}',
+            'img{display:block;width:' + asset.w + 'px;height:' + asset.h + 'px;max-width:none}',
+            '</style></head><body><main>',
+            '<h1>' + safeLabel + ' <small>' + asset.w + ' x ' + asset.h + ' px</small></h1>',
+            '<div class="hint">',
+            'Press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>, drag a rectangle around the banner below, then save or paste it into LinkedIn. ',
+            '<b>This bypasses the encoding issue</b> that causes LinkedIn to reject our directly-downloaded PNG.',
+            '</div>',
+            '<div class="frame"><img src="' + dataUrl + '" /></div>',
+            '<div class="hint" style="background:transparent;border:0;color:#666;font-size:11px">Tip: scroll horizontally to see the full banner if your screen is narrower than ' + asset.w + ' px.</div>',
+            '</main></body></html>',
+          ].join(''));
+          win.document.close();
+        } catch (e) {
+          console.error('Screenshot mode failed', e);
+          alert('Could not open screenshot mode. Try refreshing the page.');
+        }
+      };
+
+      return () => { delete window.__downloadOne; delete window.__screenshotMode; };
     }, [aff.code, !!cobrand]);
 
     const groups = useMemo(() => {
