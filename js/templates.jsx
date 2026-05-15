@@ -176,6 +176,34 @@
     );
   }
 
+  // WebsiteUrl — plain website URL footer for cover-asset templates.
+  // No "USE CODE" label, no "Referral URL:" framing. Just the URL with a
+  // small wave-gradient dot (brand mark, not a CTA accent).
+  function WebsiteUrl({ aff, dark = true, size = 'md', align = 'left' }) {
+    const sizes = {
+      sm: { url: 11, dot: 5 },
+      md: { url: 14, dot: 6 },
+      lg: { url: 17, dot: 7 },
+    };
+    const s = sizes[size] || sizes.md;
+    const color = dark ? 'rgba(238,243,250,0.75)' : 'rgba(15,27,45,0.7)';
+    const gradient = `linear-gradient(135deg, ${PALETTE.wave[0]}, ${PALETTE.wave[2]}, ${PALETTE.wave[4]})`;
+    return (
+      <div style={{
+        fontFamily: TYPE.mono, fontSize: s.url, color,
+        letterSpacing: '0.03em', display: 'flex', alignItems: 'center',
+        gap: 10, justifyContent: align === 'right' ? 'flex-end' : 'flex-start',
+        whiteSpace: 'nowrap',
+      }}>
+        <span style={{
+          width: s.dot, height: s.dot, borderRadius: 999, background: gradient,
+          display: 'inline-block', flex: '0 0 auto',
+        }} />
+        adamftd.com/ref/{aff.code}
+      </div>
+    );
+  }
+
   function Eyebrow({ children, color, size = 13 }) {
     return (
       <div style={{
@@ -293,16 +321,18 @@
       <div style={{ width: 1584, height: 396, background: bg, position: 'relative', overflow: 'hidden', fontFamily: TYPE.sans, color: fg }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0 }}><GradientHairline h={3} /></div>
         <div style={{ position: 'absolute', top: 28, left: 72, fontFamily: TYPE.mono, fontSize: 12, letterSpacing: '0.28em', textTransform: 'uppercase', color: muted, fontWeight: 500 }}>{BRAND_EYEBROW}</div>
-        <div style={{ position: 'absolute', inset: '56px 72px 40px 72px', display: 'grid', gridTemplateColumns: `${leftCol} 1px 1fr`, gap: 44, alignItems: 'stretch' }}>
+        <div style={{ position: 'absolute', inset: '56px 72px 36px 72px', display: 'grid', gridTemplateColumns: `${leftCol} 1px 1fr`, gap: 44, alignItems: 'stretch' }}>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 14 }}>
             <Brand width={brandW} cobrand={cobrand} inset={dark} padding={12} radius={10} bg={dark ? PALETTE.paper : 'transparent'} />
             <ReferredBy name={aff.full_name} dark={dark} prominence="emphasis" />
           </div>
           <div style={{ width: 1, background: ruleColor, alignSelf: 'stretch' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, gap: 10 }}>
+            <Eyebrow color={accent(cobrand)} size={11}>Trade intelligence, grounded</Eyebrow>
             <div style={{ fontSize: 44, fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', color: fg, textWrap: 'balance', maxWidth: 900 }}>
               {pickHeadline(line, cobrand)}
             </div>
+            <WebsiteUrl aff={aff} dark={dark} size="md" />
           </div>
         </div>
       </div>
@@ -517,10 +547,12 @@
             <ReferredBy name={aff.full_name} dark={dark} prominence="emphasis" />
           </div>
           <div style={{ width: 1, background: ruleColor }} />
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, gap: 12 }}>
+            <Eyebrow color={accent(cobrand)} size={13}>Trade intelligence, grounded</Eyebrow>
             <div style={{ fontSize: 60, fontWeight: 600, lineHeight: 1.05, letterSpacing: '-0.03em', color: fg, textWrap: 'balance', maxWidth: 880 }}>
               {pickHeadline(line, cobrand, 'AI-native AND source-anchored.')}
             </div>
+            <WebsiteUrl aff={aff} dark={dark} size="md" />
           </div>
         </div>
       </div>
@@ -581,10 +613,11 @@
             <div style={{ fontFamily: TYPE.mono, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: muted }}>Referred by <span style={{ color: fg, fontWeight: 500 }}>{aff.full_name}</span></div>
           </div>
           <div style={{ width: 1, background: ruleColor }} />
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
-            <div style={{ fontSize: 24, fontWeight: 600, lineHeight: 1.15, letterSpacing: '-0.02em', color: fg, textWrap: 'balance' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, gap: 8 }}>
+            <div style={{ fontSize: 22, fontWeight: 600, lineHeight: 1.15, letterSpacing: '-0.02em', color: fg, textWrap: 'balance' }}>
               {cobrand?.hero_override?.trim() || 'AI-native trade intelligence, grounded in source data.'}
             </div>
+            <WebsiteUrl aff={aff} dark={dark} size="sm" />
           </div>
         </div>
       </div>
@@ -646,8 +679,11 @@
         <div style={{ position: 'absolute', left: 100, bottom: 80 }}>
           <Brand width={brandW} cobrand={cobrand} inset={dark} padding={20} radius={12} bg={dark ? PALETTE.paper : 'transparent'} />
         </div>
-        <div style={{ position: 'absolute', top: 80, right: 100, fontFamily: TYPE.mono, fontSize: 14, letterSpacing: '0.22em', textTransform: 'uppercase', color: muted, textAlign: 'right' }}>
-          Referred by <span style={{ color: fg, fontWeight: 500 }}>{aff.full_name}</span>
+        <div style={{ position: 'absolute', top: 80, right: 100, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 14 }}>
+          <div style={{ fontFamily: TYPE.mono, fontSize: 14, letterSpacing: '0.22em', textTransform: 'uppercase', color: muted, textAlign: 'right' }}>
+            Referred by <span style={{ color: fg, fontWeight: 500 }}>{aff.full_name}</span>
+          </div>
+          <WebsiteUrl aff={aff} dark={dark} size="md" align="right" />
         </div>
       </div>
     );
