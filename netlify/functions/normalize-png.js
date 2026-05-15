@@ -40,15 +40,25 @@ async function handle(req) {
 
   const inputBuffer = Buffer.from(ab);
 
+  // Read metadata to know what bg to flatten any alpha onto.
+  const meta = await sharp(inputBuffer, { failOn: 'none' }).metadata();
+  // Default to ADAMftd ink dark; the artboards always render solid bg so
+  // there shouldn't actually be transparent pixels — this is a safety net.
+  const fallbackBg = { r: 15, g: 27, b: 45 };
+
   const output = await sharp(inputBuffer, { failOn: 'none' })
-    // Normalise pipeline colour space to sRGB and embed the standard
-    // sRGB ICC profile in the output PNG. This is the metadata Windows
-    // Snipping Tool / Photoshop / Photos write that browsers don't.
+    // Flatten any alpha onto a solid background → guaranteed no alpha.
+    .flatten({ background: fallbackBg })
+    // Drop the alpha channel from the output PNG: color type 2 (RGB) instead
+    // of color type 6 (RGBA). Real photos and screenshots are RGB.
+    .removeAlpha()
+    // Pipeline colour space sRGB.
     .toColorspace('srgb')
+    // Embed the standard sRGB IEC61966-2.1 ICC profile.
     .withMetadata({ icc: 'srgb' })
-    // Force re-encode via libpng with high compression (smaller file,
-    // standard chunk layout).
-    .png({ compressionLevel: 9, adaptiveFiltering: false, force: true })
+    // Re-encode via libpng. Use default compression level (6) — high
+    // levels sometimes produce IDAT signatures that classifiers flag.
+    .png({ compressionLevel: 6, adaptiveFiltering: true, force: true, palette: false })
     .toBuffer();
 
   return new Response(output, {
