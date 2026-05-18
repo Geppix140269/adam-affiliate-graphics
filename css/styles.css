@@ -276,6 +276,14 @@ html, body { margin: 0; padding: 0; background: var(--canvas); font-family: "Int
 .qr-hint { font-size: 12px; color: rgba(15,27,45,0.55); line-height: 1.5; margin-top: 6px; }
 .qr-error { padding: 10px 12px; background: rgba(208,74,59,0.08); border: 1px solid rgba(208,74,59,0.25); border-radius: 6px; color: #8B2C20; font-size: 13px; margin-bottom: 12px; }
 
+/* ---------- Sales playbook card ---------- */
+.playbook-card { display: flex; flex-direction: column; gap: 14px; padding: 4px 0; }
+.playbook-card p { margin: 0; font-size: 14px; line-height: 1.55; color: rgba(15,27,45,0.78); max-width: 720px; }
+.playbook-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.playbook-actions .copy-btn { padding: 10px 18px; font-size: 13px; }
+.playbook-open { text-decoration: none; display: inline-block; }
+.playbook-hint { font-family: "JetBrains Mono", monospace; font-size: 11px; color: rgba(15,27,45,0.5); line-height: 1.5; }
+
 /* ---------- Co-brand setup strip ---------- */
 .cobrand-strip { background: #fff; border-bottom: 1px solid rgba(15,27,45,0.08); padding: 20px 28px; max-width: none; }
 .cobrand-strip-head { display: flex; align-items: baseline; gap: 14px; max-width: 1600px; margin: 0 auto 12px; }

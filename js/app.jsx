@@ -11,7 +11,7 @@
 (function () {
   const { useState, useEffect, useMemo, useRef } = React;
   const { ASSETS, POSITIONING_LINES, MIDDOT, Artboard, ContentSection,
-    CaptionsCard, EmailsCard, DmsCard, PitchesCard, FaqCard, QrCard, PersonalLinksCard,
+    CaptionsCard, EmailsCard, DmsCard, PitchesCard, FaqCard, QrCard, PersonalLinksCard, PlaybookCard,
     buildCaptionsTxt, buildEmailsTxt, buildDmsTxt, buildPitchesTxt, buildFaqTxt,
     renderQrToCanvas, canvasToPngBlob } = window.AGK;
 
@@ -572,8 +572,9 @@
       {
         id: 'tools', label: 'Tools', icon: '🔳',
         sub: [
-          { id: 'qr',    label: 'Personal QR code' },
-          { id: 'links', label: 'Personal links' },
+          { id: 'qr',       label: 'Personal QR code' },
+          { id: 'links',    label: 'Personal links' },
+          { id: 'playbook', label: 'Sales playbook' },
         ],
       },
       {
@@ -665,6 +666,17 @@
           }
         } catch (e) {
           console.warn('Could not add QR codes to zip', e);
+        }
+        // Sales playbook (PowerPoint)
+        try {
+          setProgress({ current: frames.length, total: frames.length, stage: 'Adding sales playbook' });
+          const r = await fetch('playbook/ADAMftd_Affiliate_Sales_Playbook.pptx');
+          if (r.ok) {
+            const pptx = await r.blob();
+            zip.file('playbook/ADAMftd_Affiliate_Sales_Playbook.pptx', pptx);
+          }
+        } catch (e) {
+          console.warn('Could not add playbook to zip', e);
         }
         setProgress({ current: frames.length, total: frames.length, stage: 'Bundling ZIP' });
         const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -853,6 +865,10 @@
               <div className="ia-sub" id="links" data-sub-id="links">
                 <h3 className="ia-sub-h">Personal links</h3>
                 <PersonalLinksCard aff={aff} inline />
+              </div>
+              <div className="ia-sub" id="playbook" data-sub-id="playbook">
+                <h3 className="ia-sub-h">Sales playbook</h3>
+                <PlaybookCard inline />
               </div>
             </section>
 

@@ -1,0 +1,1591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ADAMftd Affiliate Sales Playbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<script type="application/json" id="speaker-notes">
+[
+"Welcome. This playbook is built for independent partners selling around ADAMftd. The promise is simple: when a buyer or seller faces trade uncertainty, you turn that moment into a qualified referral. Four verbs anchor the entire deck — verify, discover, analyse, act.",
+"Companies almost never wake up wanting data. They wake up wanting confidence before a decision. These four problems are the entry points where ADAMftd is genuinely useful: verification, discovery, market review, and margin protection. Memorise them — every conversation maps back to one of these four.",
+"This is the one sentence to commit to memory and use before every demo. It contains everything in the right order — what ADAMftd is, what it does, and what it protects. Read it slowly. The safe-positioning caveat at the bottom is not optional; it is what keeps us credible.",
+"The first and most common use case. The customer has a name. Your job is to walk them from a name to evidence in four steps. The affiliate angle at the bottom is the line to use — before they send money, sign a contract, or schedule a meeting.",
+"Discovery is the reverse motion. Not 'is this counterparty safe' but 'who should we even be talking to'. Walk it like a funnel: a universe of possibilities filters down through fit, then evidence, then priority. The question at the bottom reframes outreach as evidence-led.",
+"Market review is the consultant's use case. Five lenses — size, concentration, seasonality, competition, barriers — form a structured view a buyer can act on. The audience here is exporters, importers, chambers, EDOs, sector associations. End with the focusing question.",
+"Volatility is where margin gets killed quietly. From quote to delivery, six pressure points compound. ADAMftd doesn't predict prices — be very clear about that — but it makes the conversation about exposure honest and concrete.",
+"The diagnostic takes under five minutes. Four questions, one per use case, asked in this order. The rule is non-negotiable: diagnose first, demo second. The best demo is the one that matches the pain you just heard.",
+"A clean ten-minute demo storyline you can run yourself or request from ADAMftd. Five chunks of two minutes. Always close with the same action: register through my partner link and test it on your own product, company or market.",
+"The commercial offer, kept simple. Fifty signup credits, fifty dollars off the first paid month, a free market report with annual Pro. Always share the referral link, not just the homepage. Without your code, you don't get attributed.",
+"Credibility comes from precision. Use the language on the left. Avoid the language on the right. Real-time tracking, guaranteed buyers, official body logos, and unsupported savings figures are the four ways to lose credibility fastest.",
+"Close with who to approach and how. End users come first, sub-affiliates second. The closing language is the line to memorise. Always offer a low-risk first test on the prospect's own product, market or company."
+]
+</script>
+
+<style>
+  :root {
+    /* Type scale */
+    --type-display: 128px;
+    --type-title: 72px;
+    --type-subtitle: 40px;
+    --type-lead: 32px;
+    --type-body: 28px;
+    --type-small: 24px;
+
+    /* Spacing */
+    --pad-x: 110px;
+    --pad-top: 100px;
+    --pad-bottom: 96px;
+    --gap-title: 56px;
+    --gap-item: 32px;
+
+    /* Color */
+    --bg: #F4EFE6;
+    --bg-warm: #EFE8DB;
+    --paper: #FBF8F2;
+    --ink: #0F2C46;
+    --ink-2: #244463;
+    --ink-soft: #5E708A;
+    --rule: rgba(15, 44, 70, 0.12);
+    --rule-strong: rgba(15, 44, 70, 0.28);
+
+    --c-verify:   #1F8A5B;
+    --c-discover: #D9692C;
+    --c-analyze:  #6B3FA0;
+    --c-act:      #1F7A8C;
+  }
+
+  html, body { margin: 0; background: #000; color: var(--ink); font-family: "DM Sans", system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+
+  deck-stage section {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: var(--type-body);
+    line-height: 1.35;
+    letter-spacing: -0.005em;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Slide frame */
+  .slide {
+    width: 100%;
+    height: 100%;
+    padding: var(--pad-top) var(--pad-x) var(--pad-bottom);
+    display: flex;
+    flex-direction: column;
+  }
+  .slide.dark {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* Header strip */
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: var(--gap-title);
+  }
+  .slide.dark .head { border-bottom-color: rgba(255,255,255,0.18); }
+  .eyebrow {
+    font-size: var(--type-small);
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .slide.dark .eyebrow { color: rgba(255,255,255,0.62); }
+  .page-no { font-family: "Instrument Serif", serif; font-size: 28px; font-style: italic; color: var(--ink-soft); letter-spacing: 0; white-space: nowrap; }
+  .slide.dark .page-no { color: rgba(255,255,255,0.5); }
+
+  /* Footer */
+  .foot {
+    position: absolute;
+    left: var(--pad-x);
+    right: var(--pad-x);
+    bottom: 42px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: var(--type-small);
+    color: var(--ink-soft);
+    border-top: 1px solid var(--rule);
+    padding-top: 22px;
+    white-space: nowrap;
+  }
+  .slide.dark .foot { color: rgba(255,255,255,0.55); border-top-color: rgba(255,255,255,0.15); }
+  .foot .wordmark { font-weight: 600; letter-spacing: 0.04em; color: var(--ink-2); }
+  .slide.dark .foot .wordmark { color: var(--paper); }
+
+  /* Title block */
+  h1.title {
+    font-size: var(--type-title);
+    line-height: 1.04;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    margin: 0 0 22px 0;
+    text-wrap: balance;
+    max-width: 22ch;
+  }
+  .deck h1.title { font-weight: 500; }
+  .lede {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: var(--type-lead);
+    color: var(--ink-2);
+    margin: 0;
+    max-width: 38ch;
+    font-weight: 400;
+  }
+  .slide.dark .lede { color: rgba(255,255,255,0.82); }
+
+  /* === Slide 1 — Title === */
+  .s1 .grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 80px;
+    align-items: stretch;
+  }
+  .s1 .display {
+    font-size: var(--type-display);
+    line-height: 0.96;
+    letter-spacing: -0.035em;
+    font-weight: 500;
+    margin: 0;
+    color: var(--paper);
+  }
+  .s1 .display em {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .s1 .left { display: flex; flex-direction: column; justify-content: space-between; }
+  .s1 .sub {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 44px;
+    line-height: 1.2;
+    color: rgba(255,255,255,0.82);
+    max-width: 22ch;
+    margin: 36px 0 0;
+    font-weight: 400;
+  }
+  .s1 .body {
+    font-size: var(--type-body);
+    line-height: 1.45;
+    color: rgba(255,255,255,0.7);
+    max-width: 48ch;
+    margin: 0;
+  }
+  .s1 .verbs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-top: 1px solid rgba(255,255,255,0.18);
+  }
+  .s1 .verb {
+    padding: 32px 0 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.18);
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+  }
+  .s1 .verb:nth-child(odd) { padding-right: 24px; border-right: 1px solid rgba(255,255,255,0.18); }
+  .s1 .verb:nth-child(even) { padding-left: 24px; }
+  .s1 .verb .num {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 36px;
+    color: rgba(255,255,255,0.55);
+    min-width: 1.2ch;
+  }
+  .s1 .verb .name { font-size: 38px; font-weight: 500; letter-spacing: -0.01em; color: var(--paper); }
+
+  .s1 .right {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 56px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .s1 .logo-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 0;
+  }
+  .s1 .logo-wrap img {
+    width: 100%;
+    max-width: 460px;
+    background: #fff;
+    border-radius: 4px;
+    padding: 32px;
+  }
+  .s1 .credit {
+    font-size: var(--type-small);
+    color: rgba(255,255,255,0.6);
+    line-height: 1.5;
+  }
+  .s1 .credit strong { color: var(--paper); font-weight: 500; }
+  .s1 .ribbon {
+    font-size: var(--type-small);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.62);
+    margin-bottom: 36px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .s1 .ribbon::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.2);
+  }
+
+  /* === Slide 2 — Four problems === */
+  .s2 .body { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0; border-top: 1px solid var(--rule-strong); border-left: 1px solid var(--rule-strong); min-height: 0; }
+  .s2 .head { margin-bottom: 28px; }
+  .s2 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 80px; margin-bottom: 32px; }
+  .s2 .title-row h1 { margin-bottom: 0; font-size: 60px; max-width: 18ch; }
+  .s2 .cell {
+    padding: 28px 44px 28px 44px;
+    border-right: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .s2 .cell .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    font-size: var(--type-small);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .s2 .cell .dot { width: 14px; height: 14px; border-radius: 50%; }
+  .s2 .cell h3 {
+    font-size: 36px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.12;
+    margin: 0;
+    max-width: 16ch;
+  }
+  .s2 .cell .q {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 26px;
+    line-height: 1.32;
+    color: var(--ink-soft);
+    max-width: 30ch;
+    margin: auto 0 0 0;
+  }
+  .s2 .cell .num {
+    position: absolute;
+    top: 28px;
+    right: 44px;
+    font-family: "Instrument Serif", serif;
+    font-size: 32px;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+
+  /* === Slide 3 — One sentence === */
+  .s3 .head { margin-bottom: 32px; }
+  .s3 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 80px; margin-bottom: 48px; }
+  .s3 .title-row h1 { margin-bottom: 0; font-size: 56px; max-width: 16ch; }
+  .s3 .body { flex: 1; display: flex; flex-direction: column; gap: 36px; min-height: 0; }
+  .s3 .pull {
+    font-family: "Instrument Serif", serif;
+    font-size: 50px;
+    line-height: 1.22;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    max-width: 38ch;
+    margin: 0;
+    font-weight: 400;
+  }
+  .s3 .pull .accent { font-style: italic; color: var(--ink-2); }
+  .s3 .pull .hl-v { color: var(--c-verify); }
+  .s3 .pull .hl-d { color: var(--c-discover); }
+  .s3 .pull .hl-a { color: var(--c-analyze); }
+  .s3 .pull .hl-m { color: var(--c-act); }
+  .s3 .pillars {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--rule-strong);
+    padding-top: 28px;
+  }
+  .s3 .pillar { padding-right: 32px; }
+  .s3 .pillar .px {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 30px;
+    margin-bottom: 8px;
+  }
+  .s3 .pillar.v .px { color: var(--c-verify); }
+  .s3 .pillar.d .px { color: var(--c-discover); }
+  .s3 .pillar.a .px { color: var(--c-analyze); }
+  .s3 .pillar.m .px { color: var(--c-act); }
+  .s3 .pillar .ph { font-size: var(--type-body); font-weight: 500; }
+  .s3 .caveat {
+    font-size: var(--type-small);
+    color: var(--ink-soft);
+    border-left: 2px solid var(--rule-strong);
+    padding-left: 24px;
+    margin-top: 32px;
+    max-width: 90ch;
+    line-height: 1.5;
+  }
+
+  /* === Slide 4 — Verification === */
+  .s4 .head { margin-bottom: 32px; }
+  .s4 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 80px; margin-bottom: 40px; }
+  .s4 .title-row h1 { margin-bottom: 0; font-size: 60px; max-width: 18ch; }
+  .s4 .steps {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 0;
+    min-height: 0;
+  }
+  .s4 .step {
+    padding: 0 36px 0 0;
+    border-left: 1px solid var(--rule-strong);
+    padding-left: 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: relative;
+  }
+  .s4 .step:first-child { padding-left: 0; border-left: none; }
+  .s4 .step .n {
+    font-family: "Instrument Serif", serif;
+    font-size: 80px;
+    font-style: italic;
+    line-height: 1;
+    color: var(--c-verify);
+    font-weight: 400;
+  }
+  .s4 .step h3 {
+    font-size: 34px;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+  .s4 .step p { font-size: var(--type-body); color: var(--ink-soft); margin: 0; line-height: 1.4; }
+  .s4 .angle {
+    margin-top: 36px;
+    background: var(--paper);
+    border-left: 4px solid var(--c-verify);
+    padding: 28px 36px;
+    display: flex;
+    gap: 32px;
+    align-items: baseline;
+  }
+  .s4 .angle .label {
+    font-size: var(--type-small);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-verify);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .s4 .angle .quote {
+    font-family: "Instrument Serif", serif;
+    font-size: 28px;
+    line-height: 1.32;
+    font-style: italic;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  /* === Slide 5 — Discovery funnel === */
+  .s5 .head { margin-bottom: 32px; }
+  .s5 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 80px; margin-bottom: 32px; }
+  .s5 .title-row h1 { margin-bottom: 0; font-size: 60px; max-width: 18ch; }
+  .s5 .funnel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 0 24px;
+    min-height: 0;
+  }
+  .s5 .stages {
+    display: grid;
+    grid-template-columns: 1.4fr 1.15fr 0.95fr 0.75fr;
+    gap: 14px;
+    width: 100%;
+  }
+  .s5 .stage {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 36px 36px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    min-height: 280px;
+  }
+  .s5 .stage:nth-child(1) { background: #FFFDF6; }
+  .s5 .stage:nth-child(2) { background: #FCF3E2; }
+  .s5 .stage:nth-child(3) { background: #F5E6CB; }
+  .s5 .stage:nth-child(4) { background: var(--c-discover); color: var(--paper); }
+  .s5 .stage .n {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 30px;
+    color: var(--ink-soft);
+  }
+  .s5 .stage:nth-child(4) .n { color: rgba(255,255,255,0.7); }
+  .s5 .stage h3 { font-size: 38px; margin: 0; font-weight: 500; letter-spacing: -0.02em; }
+  .s5 .stage p { font-size: 24px; color: var(--ink-soft); margin: auto 0 0; line-height: 1.35; }
+  .s5 .stage:nth-child(4) p { color: rgba(255,255,255,0.85); }
+  .s5 .stage .arrow {
+    position: absolute;
+    right: -22px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: "Instrument Serif", serif;
+    font-size: 36px;
+    color: var(--ink-soft);
+    background: var(--bg);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  .s5 .ask {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 28px 40px;
+    display: flex;
+    align-items: baseline;
+    gap: 36px;
+  }
+  .s5 .ask .label {
+    font-size: var(--type-small);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .s5 .ask .quote {
+    font-family: "Instrument Serif", serif;
+    font-size: 28px;
+    line-height: 1.32;
+    font-style: italic;
+    margin: 0;
+  }
+
+  /* === Slide 6 — Market review === */
+  .s6 .grid { flex: 1; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 64px; min-height: 0; }
+  .s6 .head { margin-bottom: 28px; }
+  .s6 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 80px; margin-bottom: 36px; }
+  .s6 .title-row h1 { margin-bottom: 0; font-size: 60px; max-width: 18ch; }
+  .s6 .lenses { display: flex; flex-direction: column; }
+  .s6 .lenses h4 {
+    font-size: var(--type-small);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--c-analyze);
+    margin: 0 0 28px;
+  }
+  .s6 .lens {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 18px;
+    padding: 22px 0;
+    border-top: 1px solid var(--rule-strong);
+    align-items: baseline;
+  }
+  .s6 .lens:last-child { border-bottom: 1px solid var(--rule-strong); }
+  .s6 .lens .ln {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 38px;
+    color: var(--c-analyze);
+    line-height: 1;
+  }
+  .s6 .lens .lt { font-size: 32px; font-weight: 500; letter-spacing: -0.01em; }
+  .s6 .right { display: flex; flex-direction: column; gap: 28px; min-height: 0; }
+  .s6 .pitch {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 40px 44px 44px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 0;
+  }
+  .s6 .pitch .label {
+    font-size: var(--type-small);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 28px;
+  }
+  .s6 .pitch .q {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 34px;
+    line-height: 1.28;
+    margin: 0;
+  }
+  .s6 .meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .s6 .meta .kv .k {
+    font-size: var(--type-small);
+    color: var(--ink-soft);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .s6 .meta .kv .v { font-size: 24px; line-height: 1.35; color: var(--ink-2); }
+
+  /* === Slide 7 — Volatility chain === */
+  .s7 .head { margin-bottom: 32px; }
+  .s7 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 80px; margin-bottom: 32px; }
+  .s7 .title-row h1 { margin-bottom: 0; font-size: 60px; max-width: 18ch; }
+  .s7 .chain {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 36px;
+    min-height: 0;
+  }
+  .s7 .links {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+  .s7 .link {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 28px 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    min-height: 200px;
+  }
+  .s7 .link.last { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .s7 .link .step {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 28px;
+    color: var(--c-act);
+    line-height: 1;
+  }
+  .s7 .link.last .step { color: #6FBFCC; }
+  .s7 .link h3 {
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+  .s7 .link p { margin: auto 0 0; font-size: 24px; line-height: 1.3; color: var(--ink-soft); }
+  .s7 .link.last p { color: rgba(255,255,255,0.7); }
+  .s7 .twin { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 32px; }
+  .s7 .twin .card { background: var(--paper); padding: 28px 36px; border: 1px solid var(--rule); }
+  .s7 .twin .card .label {
+    font-size: var(--type-small);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--c-act);
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .s7 .twin .card.warn .label { color: var(--c-discover); }
+  .s7 .twin .card .text {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 26px;
+    line-height: 1.32;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  /* === Slide 8 — Diagnostic === */
+  .s8 .head { margin-bottom: 28px; }
+  .s8 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 80px; margin-bottom: 32px; }
+  .s8 .title-row h1 { margin-bottom: 0; font-size: 60px; max-width: 18ch; }
+  .s8 .grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 1fr;
+    gap: 0;
+    border-top: 1px solid var(--rule-strong);
+    border-left: 1px solid var(--rule-strong);
+    border-right: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+    min-height: 0;
+  }
+  .s8 .q {
+    padding: 32px 32px;
+    border-right: 1px solid var(--rule-strong);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    position: relative;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .s8 .q:last-child { border-right: none; }
+  .s8 .q .tag {
+    font-size: var(--type-small);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .s8 .q.v .tag { color: var(--c-verify); }
+  .s8 .q.d .tag { color: var(--c-discover); }
+  .s8 .q.a .tag { color: var(--c-analyze); }
+  .s8 .q.m .tag { color: var(--c-act); }
+  .s8 .q .ask {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 30px;
+    line-height: 1.25;
+    margin: 0;
+    color: var(--ink);
+  }
+  .s8 .q .marker {
+    font-family: "Instrument Serif", serif;
+    font-size: 24px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin-top: auto;
+  }
+  .s8 .rule-card {
+    margin-top: 24px;
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+  }
+  .s8 .rule-card .label {
+    font-size: var(--type-small);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .s8 .rule-card .text {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 26px;
+    line-height: 1.3;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  /* === Slide 9 — Demo timeline === */
+  .s9 .head { margin-bottom: 32px; }
+  .s9 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 80px; margin-bottom: 24px; }
+  .s9 .title-row h1 { margin-bottom: 0; font-size: 60px; max-width: 18ch; }
+  .s9 .timeline {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    margin: 12px 0 28px;
+    position: relative;
+    min-height: 0;
+  }
+  .s9 .timeline::before {
+    content: "";
+    position: absolute;
+    top: 90px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--rule-strong);
+  }
+  .s9 .tick {
+    padding: 0 28px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+  }
+  .s9 .tick .dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--ink);
+    margin-top: 82px;
+    position: relative;
+    z-index: 1;
+  }
+  .s9 .tick:first-child .dot { background: var(--c-verify); }
+  .s9 .tick:nth-child(2) .dot { background: var(--c-discover); }
+  .s9 .tick:nth-child(3) .dot { background: var(--c-analyze); }
+  .s9 .tick:nth-child(4) .dot { background: var(--c-act); }
+  .s9 .tick:nth-child(5) .dot { background: var(--ink); width: 22px; height: 22px; margin-top: 80px; }
+  .s9 .tick .time {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 44px;
+    color: var(--ink);
+    line-height: 1;
+    margin-top: 12px;
+  }
+  .s9 .tick .what {
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    margin-top: 12px;
+    max-width: 14ch;
+  }
+  .s9 .tick .n {
+    font-size: var(--type-small);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .s9 .close {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 32px 44px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 48px;
+  }
+  .s9 .close .label {
+    font-size: var(--type-small);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 14px;
+  }
+  .s9 .close .quote {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 30px;
+    line-height: 1.28;
+    margin: 0;
+  }
+  .s9 .close .badge {
+    font-size: var(--type-small);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 14px 24px;
+    color: rgba(255,255,255,0.85);
+    white-space: nowrap;
+  }
+
+  /* === Slide 10 — Offer === */
+  .s10 .head { margin-bottom: 32px; }
+  .s10 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 80px; margin-bottom: 32px; }
+  .s10 .title-row h1 { margin-bottom: 0; font-size: 60px; max-width: 18ch; }
+  .s10 .grid { flex: 1; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; min-height: 0; }
+  .s10 .offers { display: flex; flex-direction: column; gap: 0; }
+  .s10 .offer {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 28px;
+    align-items: baseline;
+    padding: 20px 0;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .s10 .offer:last-child { border-bottom: 1px solid var(--rule-strong); }
+  .s10 .offer .big {
+    font-family: "Instrument Serif", serif;
+    font-size: 56px;
+    line-height: 1;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .s10 .offer:nth-child(1) .big { color: var(--c-verify); }
+  .s10 .offer:nth-child(2) .big { color: var(--c-discover); }
+  .s10 .offer:nth-child(3) .big { color: var(--c-analyze); }
+  .s10 .offer .head { font-size: 28px; font-weight: 500; margin: 0 0 8px; letter-spacing: -0.01em; border: none; padding: 0; }
+  .s10 .offer .sub { font-size: 24px; color: var(--ink-soft); margin: 0; line-height: 1.35; }
+  .s10 .code-card {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 44px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    height: 100%;
+  }
+  .s10 .code-card .label {
+    font-size: var(--type-small);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+  }
+  .s10 .code-card .code {
+    font-family: "DM Sans", sans-serif;
+    font-weight: 700;
+    font-size: 72px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .s10 .code-card .url {
+    font-family: "DM Sans", monospace;
+    font-size: 28px;
+    color: rgba(255,255,255,0.78);
+    border-top: 1px solid rgba(255,255,255,0.18);
+    padding-top: 24px;
+    word-break: break-all;
+  }
+  .s10 .code-card .url .slash { color: rgba(255,255,255,0.4); }
+  .s10 .code-card .note {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 26px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.4;
+    margin-top: auto;
+  }
+
+  /* === Slide 11 — Safe language === */
+  .s11 .head { margin-bottom: 32px; }
+  .s11 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 80px; margin-bottom: 32px; }
+  .s11 .title-row h1 { margin-bottom: 0; font-size: 60px; max-width: 18ch; }
+  .s11 .grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; margin-top: 0; min-height: 0; }
+  .s11 .col h4 {
+    font-size: var(--type-small);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin: 0 0 28px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .s11 .col h4 .mark {
+    display: inline-flex;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    align-items: center; justify-content: center;
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 26px;
+  }
+  .s11 .col.say h4 { color: var(--c-verify); }
+  .s11 .col.say h4 .mark { background: var(--c-verify); color: var(--paper); }
+  .s11 .col.avoid h4 { color: var(--c-discover); }
+  .s11 .col.avoid h4 .mark { background: var(--c-discover); color: var(--paper); }
+  .s11 .col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .s11 .col li {
+    padding: 26px 0;
+    border-top: 1px solid var(--rule-strong);
+    font-size: 28px;
+    line-height: 1.4;
+    color: var(--ink-2);
+    font-weight: 400;
+  }
+  .s11 .col li:last-child { border-bottom: 1px solid var(--rule-strong); }
+  .s11 .col.say li { font-family: "Instrument Serif", serif; font-style: italic; font-size: 30px; }
+  .s11 .col.avoid li { color: var(--ink-2); }
+  .s11 .col.avoid li::before {
+    content: "—";
+    margin-right: 16px;
+    color: var(--c-discover);
+  }
+
+  /* === Slide 12 — Approach === */
+  .s12 .grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; min-height: 0; }
+  .s12 .head { margin-bottom: 28px; }
+  .s12 .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 80px; margin-bottom: 32px; }
+  .s12 .title-row h1 { margin-bottom: 0; font-size: 60px; max-width: 18ch; }
+  .s12 .left { display: flex; flex-direction: column; }
+  .s12 .left h4, .s12 .right h4 {
+    font-size: var(--type-small);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ink-2);
+    margin: 0 0 28px;
+  }
+  .s12 .prospects { display: flex; flex-direction: column; }
+  .s12 .prospect {
+    padding: 18px 0;
+    border-top: 1px solid var(--rule-strong);
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .s12 .prospect:last-child { border-bottom: 1px solid var(--rule-strong); }
+  .s12 .prospect .n {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 24px;
+    color: var(--ink-soft);
+    font-weight: 400;
+    min-width: 36px;
+  }
+  .s12 .closing {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 40px 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    flex: 1;
+    min-height: 0;
+  }
+  .s12 .closing .quote {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 30px;
+    line-height: 1.3;
+    margin: 0;
+  }
+  .s12 .closing h4 { color: rgba(255,255,255,0.6); }
+  .s12 .closing .sub {
+    border-top: 1px solid rgba(255,255,255,0.18);
+    padding-top: 28px;
+    font-size: 24px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.5;
+    margin: auto 0 0;
+  }
+  .s12 .closing .sub em { font-family: "Instrument Serif", serif; font-style: italic; font-size: 28px; }
+  .s12 .url-strip {
+    background: var(--paper);
+    border: 1px solid var(--rule-strong);
+    padding: 22px 32px;
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .s12 .url-strip .lab {
+    font-size: var(--type-small);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .s12 .url-strip .u {
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: -0.01em;
+  }
+
+</style>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+  <!-- ============================== -->
+  <!-- SLIDE 1 — TITLE -->
+  <!-- ============================== -->
+  <section data-screen-label="01 Title">
+    <div class="slide dark s1">
+      <div class="grid">
+        <div class="left">
+          <div>
+            <div class="ribbon"><span>Independent partner material</span></div>
+            <h1 class="display">Affiliate <em>Sales</em><br>Playbook</h1>
+            <p class="sub">Turning trade uncertainty into qualified referrals.</p>
+          </div>
+          <div class="verbs">
+            <div class="verb"><span class="num">i.</span><span class="name">Verify</span></div>
+            <div class="verb"><span class="num">ii.</span><span class="name">Discover</span></div>
+            <div class="verb"><span class="num">iii.</span><span class="name">Analyze</span></div>
+            <div class="verb"><span class="num">iv.</span><span class="name">Act</span></div>
+          </div>
+        </div>
+        <div class="right">
+          <div>
+            <div class="ribbon"><span>Partner brand</span></div>
+          </div>
+          <div class="logo-wrap">
+            <img src="assets/adamftd-partner.png" alt="ADAMftd Independent Partner">
+          </div>
+          <div class="credit">
+            <p style="margin:0 0 10px"><strong>A practical deck</strong> for positioning ADAMftd around supplier and buyer verification, counterparty discovery, market analysis, and price &amp; tariff volatility.</p>
+            <p style="margin:0">Customize with your referral link and code before sharing.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== -->
+  <!-- SLIDE 2 — FOUR PROBLEMS -->
+  <!-- ============================== -->
+  <section data-screen-label="02 Four problems">
+    <div class="slide s2">
+      <div class="head">
+        <div class="eyebrow">The opening</div>
+        <div class="page-no">ii</div>
+      </div>
+      <div class="title-row">
+        <h1 class="title">The four problems affiliates can sell around.</h1>
+        <p class="lede" style="margin:0; max-width: 30ch; flex-shrink: 0">Companies rarely buy &ldquo;data.&rdquo; They buy confidence before making decisions.</p>
+      </div>
+
+      <div class="body">
+        <div class="cell">
+          <div class="num">01</div>
+          <div class="tag"><span class="dot" style="background: var(--c-verify)"></span><span>Verification</span></div>
+          <h3>Supplier &amp; buyer verification</h3>
+          <p class="q">&ldquo;Can I trust this company, its shipment history, and the commercial signal?&rdquo;</p>
+        </div>
+        <div class="cell">
+          <div class="num">02</div>
+          <div class="tag"><span class="dot" style="background: var(--c-discover)"></span><span>Discovery</span></div>
+          <h3>Reliable counterparty discovery</h3>
+          <p class="q">&ldquo;Who should I approach, and why are they likely to be relevant?&rdquo;</p>
+        </div>
+        <div class="cell">
+          <div class="num">03</div>
+          <div class="tag"><span class="dot" style="background: var(--c-analyze)"></span><span>Analysis</span></div>
+          <h3>Market reviews &amp; analysis</h3>
+          <p class="q">&ldquo;Which country, segment, product or route deserves my attention?&rdquo;</p>
+        </div>
+        <div class="cell">
+          <div class="num">04</div>
+          <div class="tag"><span class="dot" style="background: var(--c-act)"></span><span>Volatility</span></div>
+          <h3>Price &amp; tariff volatility</h3>
+          <p class="q">&ldquo;What can damage margin between quote, shipment and delivery?&rdquo;</p>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span><span class="wordmark">ADAMftd</span> &middot; Affiliate Sales Playbook</span>
+        <span>02 / 12</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== -->
+  <!-- SLIDE 3 — ONE SENTENCE -->
+  <!-- ============================== -->
+  <section data-screen-label="03 One sentence">
+    <div class="slide s3">
+      <div class="head">
+        <div class="eyebrow">The line to commit to memory</div>
+        <div class="page-no">iii</div>
+      </div>
+      <div class="title-row">
+        <h1 class="title">ADAMftd in one customer sentence.</h1>
+        <p class="lede" style="margin:0; max-width: 28ch; flex-shrink: 0">Use this line before any demo or offer.</p>
+      </div>
+
+      <div class="body">
+        <p class="pull">
+          ADAMftd is an <span class="accent">AI&#8209;native trade intelligence platform</span> grounded in source data that helps companies <span class="hl-v">verify counterparties</span>, <span class="hl-d">discover buyers and suppliers</span>, <span class="hl-a">analyse markets</span>, and <span class="hl-m">protect margins</span> from price and tariff volatility.
+        </p>
+
+        <div class="pillars">
+          <div class="pillar v"><div class="px">i.</div><div class="ph">Source data</div></div>
+          <div class="pillar d"><div class="px">ii.</div><div class="ph">Trade workflows</div></div>
+          <div class="pillar a"><div class="px">iii.</div><div class="ph">Market intelligence</div></div>
+          <div class="pillar m"><div class="px">iv.</div><div class="ph">Margin protection</div></div>
+        </div>
+
+        <p class="caveat">Safe positioning: historical trade and shipment data, not real-time shipment tracking. Coverage varies by country, commodity, source and data availability.</p>
+      </div>
+
+      <div class="foot">
+        <span><span class="wordmark">ADAMftd</span> &middot; Affiliate Sales Playbook</span>
+        <span>03 / 12</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== -->
+  <!-- SLIDE 4 — USE CASE 1: VERIFICATION -->
+  <!-- ============================== -->
+  <section data-screen-label="04 Use case 1 Verification">
+    <div class="slide s4">
+      <div class="head">
+        <div class="eyebrow"><span style="color: var(--c-verify); font-weight: 600">Use case 01</span> &middot; Verification</div>
+        <div class="page-no">iv</div>
+      </div>
+      <div class="title-row">
+        <h1 class="title">From &ldquo;I found a name&rdquo; to &ldquo;I have evidence.&rdquo;</h1>
+        <p class="lede" style="margin:0; max-width: 30ch; flex-shrink: 0">Help the customer move from a hunch to a defensible decision in four moves.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="n">i</div>
+          <h3>Start with the entity</h3>
+          <p>Company name, country, product, HS code, and buyer or supplier role.</p>
+        </div>
+        <div class="step">
+          <div class="n">ii</div>
+          <h3>Cross&#8209;check trade signals</h3>
+          <p>Look for shipment patterns, trade lanes, counterparties, markets and consistency.</p>
+        </div>
+        <div class="step">
+          <div class="n">iii</div>
+          <h3>Validate risk context</h3>
+          <p>Screen sanctions, company context, and market plausibility.</p>
+        </div>
+        <div class="step">
+          <div class="n">iv</div>
+          <h3>Decide what to do next</h3>
+          <p>Proceed, ask more questions, request documents, or exclude.</p>
+        </div>
+      </div>
+
+      <div class="angle">
+        <div class="label">Affiliate angle</div>
+        <p class="quote">&ldquo;Before you send money, sign a contract or schedule a meeting, use ADAMftd to verify whether the counterparty is commercially plausible.&rdquo;</p>
+      </div>
+
+      <div class="foot">
+        <span><span class="wordmark">ADAMftd</span> &middot; Affiliate Sales Playbook</span>
+        <span>04 / 12</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== -->
+  <!-- SLIDE 5 — USE CASE 2: DISCOVERY -->
+  <!-- ============================== -->
+  <section data-screen-label="05 Use case 2 Discovery">
+    <div class="slide s5">
+      <div class="head">
+        <div class="eyebrow"><span style="color: var(--c-discover); font-weight: 600">Use case 02</span> &middot; Discovery</div>
+        <div class="page-no">v</div>
+      </div>
+      <div class="title-row">
+        <h1 class="title">From generic lists to evidence-based targets.</h1>
+        <p class="lede" style="margin:0; max-width: 30ch; flex-shrink: 0">Walk the customer through the funnel that turns a universe of possibilities into a first call.</p>
+      </div>
+
+      <div class="funnel">
+        <div class="stages">
+          <div class="stage">
+            <div class="n">i.</div>
+            <h3>Universe</h3>
+            <p>Many possible companies in the category, country or product class.</p>
+            <div class="arrow">›</div>
+          </div>
+          <div class="stage">
+            <div class="n">ii.</div>
+            <h3>Fit</h3>
+            <p>Country, product and trade lane match the customer&rsquo;s offer.</p>
+            <div class="arrow">›</div>
+          </div>
+          <div class="stage">
+            <div class="n">iii.</div>
+            <h3>Evidence</h3>
+            <p>Real activity, volume and patterns &mdash; not just a directory line.</p>
+            <div class="arrow">›</div>
+          </div>
+          <div class="stage">
+            <div class="n">iv.</div>
+            <h3>Priority</h3>
+            <p>The best first contacts to warm up &mdash; ranked, not random.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="ask">
+        <div class="label">Good discovery question</div>
+        <p class="quote">&ldquo;Which buyer, supplier or importer would be valuable if we could validate activity and relevance before outreach?&rdquo;</p>
+      </div>
+
+      <div class="foot">
+        <span><span class="wordmark">ADAMftd</span> &middot; Affiliate Sales Playbook</span>
+        <span>05 / 12</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== -->
+  <!-- SLIDE 6 — USE CASE 3: MARKET REVIEW -->
+  <!-- ============================== -->
+  <section data-screen-label="06 Use case 3 Market review">
+    <div class="slide s6">
+      <div class="head">
+        <div class="eyebrow"><span style="color: var(--c-analyze); font-weight: 600">Use case 03</span> &middot; Market reviews</div>
+        <div class="page-no">vi</div>
+      </div>
+      <div class="title-row">
+        <h1 class="title">Give the customer a structured view.</h1>
+        <p class="lede" style="margin:0; max-width: 30ch; flex-shrink: 0">Where to sell, source or invest attention &mdash; built from five repeatable lenses.</p>
+      </div>
+
+      <div class="grid">
+        <div class="lenses">
+          <h4>Market review lens</h4>
+          <div class="lens"><div class="ln">i.</div><div class="lt">Market size and demand</div></div>
+          <div class="lens"><div class="ln">ii.</div><div class="lt">Buyer &amp; supplier concentration</div></div>
+          <div class="lens"><div class="ln">iii.</div><div class="lt">Seasonality and trends</div></div>
+          <div class="lens"><div class="ln">iv.</div><div class="lt">Competitive positioning</div></div>
+          <div class="lens"><div class="ln">v.</div><div class="lt">Entry barriers and requirements</div></div>
+        </div>
+        <div class="right">
+          <div class="pitch">
+            <div>
+              <div class="label">Affiliate pitch</div>
+              <p class="q">&ldquo;Instead of guessing whether a market is worth entering, use ADAMftd to build a practical market review from trade flows, company activity, tariffs, tenders and risk signals.&rdquo;</p>
+            </div>
+          </div>
+          <div class="meta">
+            <div class="kv">
+              <div class="k">Best audience</div>
+              <div class="v">Exporters, importers, trade consultants, chambers, EDOs, sector associations.</div>
+            </div>
+            <div class="kv">
+              <div class="k">Best follow-up</div>
+              <div class="v">&ldquo;Which market should we test first?&rdquo;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span><span class="wordmark">ADAMftd</span> &middot; Affiliate Sales Playbook</span>
+        <span>06 / 12</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== -->
+  <!-- SLIDE 7 — USE CASE 4: VOLATILITY -->
+  <!-- ============================== -->
+  <section data-screen-label="07 Use case 4 Volatility">
+    <div class="slide s7">
+      <div class="head">
+        <div class="eyebrow"><span style="color: var(--c-act); font-weight: 600">Use case 04</span> &middot; Price &amp; tariff volatility</div>
+        <div class="page-no">vii</div>
+      </div>
+      <div class="title-row">
+        <h1 class="title">Protect margin before it disappears.</h1>
+        <p class="lede" style="margin:0; max-width: 30ch; flex-shrink: 0">Six moments between quote and delivery where margin gets quietly killed.</p>
+      </div>
+
+      <div class="chain">
+        <div class="links">
+          <div class="link"><div class="step">i.</div><h3>Quote</h3><p>Base price &mdash; the number the buyer expects.</p></div>
+          <div class="link"><div class="step">ii.</div><h3>Tariff</h3><p>Duty exposure that can move overnight.</p></div>
+          <div class="link"><div class="step">iii.</div><h3>Route</h3><p>Freight, lane and capacity risk along the way.</p></div>
+          <div class="link"><div class="step">iv.</div><h3>Delivery</h3><p>Landed cost &mdash; what actually arrives where.</p></div>
+          <div class="link"><div class="step">v.</div><h3>Margin</h3><p>Profit after every shift, fee and surprise.</p></div>
+          <div class="link last"><div class="step">vi.</div><h3>Decision</h3><p>Proceed, renegotiate, reroute or hold.</p></div>
+        </div>
+
+        <div class="twin">
+          <div class="card">
+            <div class="label">What the affiliate sells</div>
+            <p class="text">A better conversation before price, duty, route or demand shifts damage profitability.</p>
+          </div>
+          <div class="card warn">
+            <div class="label">Safe wording</div>
+            <p class="text">ADAMftd helps review exposure &mdash; it does not guarantee future prices or duty outcomes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span><span class="wordmark">ADAMftd</span> &middot; Affiliate Sales Playbook</span>
+        <span>07 / 12</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== -->
+  <!-- SLIDE 8 — DIAGNOSTIC -->
+  <!-- ============================== -->
+  <section data-screen-label="08 Affiliate diagnostic">
+    <div class="slide s8">
+      <div class="head">
+        <div class="eyebrow">The affiliate diagnostic &middot; under 5 minutes</div>
+        <div class="page-no">viii</div>
+      </div>
+      <div class="title-row">
+        <h1 class="title">Four questions to find the right use case.</h1>
+        <p class="lede" style="margin:0; max-width: 30ch; flex-shrink: 0">Identify the highest-value entry point before you open the product.</p>
+      </div>
+
+      <div class="grid">
+        <div class="q v">
+          <div class="tag">01 &middot; Verification</div>
+          <p class="ask">&ldquo;Are you trying to validate a buyer, supplier or importer before engaging?&rdquo;</p>
+          <div class="marker">if yes &rarr; show Use case 01</div>
+        </div>
+        <div class="q d">
+          <div class="tag">02 &middot; Discovery</div>
+          <p class="ask">&ldquo;Do you need better targets than generic contact lists?&rdquo;</p>
+          <div class="marker">if yes &rarr; show Use case 02</div>
+        </div>
+        <div class="q a">
+          <div class="tag">03 &middot; Market review</div>
+          <p class="ask">&ldquo;Which market or segment are you considering, and what evidence would de-risk the decision?&rdquo;</p>
+          <div class="marker">if yes &rarr; show Use case 03</div>
+        </div>
+        <div class="q m">
+          <div class="tag">04 &middot; Volatility</div>
+          <p class="ask">&ldquo;Where are tariffs, prices, freight or route changes hurting margin?&rdquo;</p>
+          <div class="marker">if yes &rarr; show Use case 04</div>
+        </div>
+      </div>
+
+      <div class="rule-card">
+        <div class="label">Rule</div>
+        <p class="text">Diagnose before demo. The best demo is the one that matches the pain.</p>
+      </div>
+
+      <div class="foot">
+        <span><span class="wordmark">ADAMftd</span> &middot; Affiliate Sales Playbook</span>
+        <span>08 / 12</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== -->
+  <!-- SLIDE 9 — DEMO STORYLINE -->
+  <!-- ============================== -->
+  <section data-screen-label="09 Demo storyline">
+    <div class="slide s9">
+      <div class="head">
+        <div class="eyebrow">The 10-minute demo storyline</div>
+        <div class="page-no">ix</div>
+      </div>
+      <div class="title-row">
+        <h1 class="title">A simple flow affiliates can run or request.</h1>
+        <p class="lede" style="margin:0; max-width: 30ch; flex-shrink: 0">Five chunks of two minutes. Same shape every time, so the customer always knows where you are.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="tick">
+          <div class="dot"></div>
+          <div class="n">Step 01</div>
+          <div class="time">0 &ndash; 2 min</div>
+          <div class="what">Set the business question</div>
+        </div>
+        <div class="tick">
+          <div class="dot"></div>
+          <div class="n">Step 02</div>
+          <div class="time">2 &ndash; 4 min</div>
+          <div class="what">Search product, company or trade lane</div>
+        </div>
+        <div class="tick">
+          <div class="dot"></div>
+          <div class="n">Step 03</div>
+          <div class="time">4 &ndash; 6 min</div>
+          <div class="what">Show evidence and risk context</div>
+        </div>
+        <div class="tick">
+          <div class="dot"></div>
+          <div class="n">Step 04</div>
+          <div class="time">6 &ndash; 8 min</div>
+          <div class="what">Review market, tariff or price exposure</div>
+        </div>
+        <div class="tick">
+          <div class="dot"></div>
+          <div class="n">Step 05</div>
+          <div class="time">8 &ndash; 10 min</div>
+          <div class="what">Ask for the next step</div>
+        </div>
+      </div>
+
+      <div class="close">
+        <div>
+          <div class="label">Always close with one action</div>
+          <p class="quote">&ldquo;Register through my partner link and test this on your own product, company or market.&rdquo;</p>
+        </div>
+        <div class="badge">One ask &middot; one link</div>
+      </div>
+
+      <div class="foot">
+        <span><span class="wordmark">ADAMftd</span> &middot; Affiliate Sales Playbook</span>
+        <span>09 / 12</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== -->
+  <!-- SLIDE 10 — OFFER & CTA -->
+  <!-- ============================== -->
+  <section data-screen-label="10 Partner offer">
+    <div class="slide s10">
+      <div class="head">
+        <div class="eyebrow">Partner offer &amp; call to action</div>
+        <div class="page-no">x</div>
+      </div>
+      <div class="title-row">
+        <h1 class="title">Keep the commercial message simple and repeatable.</h1>
+        <p class="lede" style="margin:0; max-width: 30ch; flex-shrink: 0">Three reasons to register today &mdash; and one link to remember.</p>
+      </div>
+
+      <div class="grid">
+        <div class="offers">
+          <div class="offer">
+            <div class="big">50</div>
+            <div>
+              <div class="head">Signup credits</div>
+              <p class="sub">25 standard + 25 partner bonus credits on registration.</p>
+            </div>
+          </div>
+          <div class="offer">
+            <div class="big">$50</div>
+            <div>
+              <div class="head">Off the first paid month</div>
+              <p class="sub">Applied once on the first Growth or Pro monthly upgrade.</p>
+            </div>
+          </div>
+          <div class="offer">
+            <div class="big">+1</div>
+            <div>
+              <div class="head">Free market report</div>
+              <p class="sub">Included with any annual Pro signup through your link.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-card">
+          <div class="label">Your full partner code</div>
+          <p class="code">[AFFILIATE&#8209;CODE]</p>
+          <div class="url">ADAMftd.com<span class="slash">/</span>ref<span class="slash">/</span>[affiliate&#8209;code]</div>
+          <p class="note">Always share the referral link &mdash; not only ADAMftd.com. Without your code, you don&rsquo;t get attributed.</p>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span><span class="wordmark">ADAMftd</span> &middot; Affiliate Sales Playbook</span>
+        <span>10 / 12</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== -->
+  <!-- SLIDE 11 — SAFE LANGUAGE -->
+  <!-- ============================== -->
+  <section data-screen-label="11 Safe language">
+    <div class="slide s11">
+      <div class="head">
+        <div class="eyebrow">Safe language for affiliates</div>
+        <div class="page-no">xi</div>
+      </div>
+      <div class="title-row">
+        <h1 class="title">Protect credibility: be specific, not exaggerated.</h1>
+        <p class="lede" style="margin:0; max-width: 30ch; flex-shrink: 0">Two columns. Use the left. Avoid the right.</p>
+      </div>
+
+      <div class="grid">
+        <div class="col say">
+          <h4><span class="mark">+</span>Say this</h4>
+          <ul>
+            <li>AI-native trade intelligence grounded in source data.</li>
+            <li>Historical trade and shipment data, with reporting delays.</li>
+            <li>Coverage varies by country, commodity, source and availability.</li>
+            <li>Use ADAMftd to support analysis, verification and discovery.</li>
+          </ul>
+        </div>
+        <div class="col avoid">
+          <h4><span class="mark">&minus;</span>Avoid this</h4>
+          <ul>
+            <li>Implying real-time shipment tracking.</li>
+            <li>Promising guaranteed buyers or sales outcomes.</li>
+            <li>Using UN, WTO or International Trade Centre logos or language.</li>
+            <li>Quoting unsupported savings or &ldquo;value created&rdquo; figures.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span><span class="wordmark">ADAMftd</span> &middot; Affiliate Sales Playbook</span>
+        <span>11 / 12</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== -->
+  <!-- SLIDE 12 — WHO TO APPROACH -->
+  <!-- ============================== -->
+  <section data-screen-label="12 Who to approach">
+    <div class="slide s12">
+      <div class="head">
+        <div class="eyebrow">Who to approach &middot; how to close</div>
+        <div class="page-no">xii</div>
+      </div>
+      <div class="title-row">
+        <h1 class="title">End users first. Sub-affiliates second.</h1>
+        <p class="lede" style="margin:0; max-width: 30ch; flex-shrink: 0">Same leaflet, two audiences &mdash; in this order.</p>
+      </div>
+
+      <div class="grid">
+        <div class="left">
+          <h4>Best-fit prospects</h4>
+          <div class="prospects">
+            <div class="prospect"><span class="n">01</span>Exporters &amp; importers</div>
+            <div class="prospect"><span class="n">02</span>Trade consultants</div>
+            <div class="prospect"><span class="n">03</span>Freight forwarders</div>
+            <div class="prospect"><span class="n">04</span>Chambers &amp; associations</div>
+            <div class="prospect"><span class="n">05</span>EDOs and trade agencies</div>
+            <div class="prospect"><span class="n">06</span>Commodity &amp; sector networks</div>
+          </div>
+          <div class="url-strip">
+            <span class="lab">Share link</span>
+            <span class="u">ADAMftd.com/ref/[affiliate&#8209;code]</span>
+          </div>
+        </div>
+        <div class="right">
+          <div class="closing">
+            <h4>Closing language</h4>
+            <p class="quote">&ldquo;Start free through my partner link. Use your own product, market or company as the first test. If it helps, we can then look at paid access, annual Pro, or an approved sub-affiliate path for your own network.&rdquo;</p>
+            <p class="sub"><em>Sub-affiliate wording:</em> &ldquo;Ask this partner about joining their network as an approved sub-affiliate.&rdquo;</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span><span class="wordmark">ADAMftd</span> &middot; Affiliate Sales Playbook</span>
+        <span>12 / 12</span>
+      </div>
+    </div>
+  </section>
+
+</deck-stage>
+
+<script src="deck-stage.js"></script>
+</body>
+</html>

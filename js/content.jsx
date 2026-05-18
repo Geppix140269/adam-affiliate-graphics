@@ -830,6 +830,38 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
   }
 
   // -----------------------------------------------------------------
+  // Card: Sales playbook (Tools section)
+  // -----------------------------------------------------------------
+
+  function PlaybookCard({ inline }) {
+    function downloadPptx() {
+      const a = document.createElement('a');
+      a.href = 'playbook/ADAMftd_Affiliate_Sales_Playbook.pptx';
+      a.download = 'ADAMftd_Affiliate_Sales_Playbook.pptx';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+    return (
+      <ContentCard inline={inline} id="playbook" title="Sales playbook" subtitle="12-slide affiliate sales training deck">
+        <div className="playbook-card">
+          <p>
+            A 12-slide playbook on turning trade-uncertainty moments into qualified ADAMftd
+            referrals. Covers the four use cases (verify, discover, analyse, act), the
+            five-minute diagnostic, a ten-minute demo storyline, the partner offer, and
+            safe positioning language.
+          </p>
+          <div className="playbook-actions">
+            <a className="copy-btn playbook-open" href="playbook/" target="_blank" rel="noopener">Open the Sales Playbook</a>
+            <button type="button" className="copy-btn" onClick={downloadPptx}>Download (PowerPoint)</button>
+          </div>
+          <div className="playbook-hint">
+            Use arrow keys to navigate slides. The deck opens in a new tab and works offline once loaded.
+          </div>
+        </div>
+      </ContentCard>
+    );
+  }
+
+  // -----------------------------------------------------------------
   // Main section
   // -----------------------------------------------------------------
 
@@ -858,7 +890,7 @@ Use my code {{ref_code}} or go to {{ref_link}} for 50 bonus credits and $50 off.
 
   window.AGK = Object.assign(window.AGK || {}, {
     ContentSection,
-    CaptionsCard, EmailsCard, DmsCard, PitchesCard, FaqCard, QrCard, PersonalLinksCard,
+    CaptionsCard, EmailsCard, DmsCard, PitchesCard, FaqCard, QrCard, PersonalLinksCard, PlaybookCard,
     buildCaptionsTxt,
     buildEmailsTxt,
     buildDmsTxt,
