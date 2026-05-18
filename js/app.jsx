@@ -267,6 +267,16 @@
     return new Promise((resolve) => canvas.toBlob(resolve, mime || 'image/png', quality));
   }
 
+  // For autoHeight assets, the real capture height is the rendered inner
+  // element's height, not the asset's nominal h. node is the artboard-frame;
+  // its first child is the asset component's root.
+  function captureHeight(node, asset) {
+    if (asset.autoHeight && node && node.firstElementChild) {
+      return node.firstElementChild.scrollHeight || node.firstElementChild.offsetHeight || asset.h;
+    }
+    return asset.h;
+  }
+
   function exportFor(asset) {
     if (asset.format === 'jpeg') return { mime: 'image/jpeg', ext: 'jpg', opaque: true, quality: 0.95 };
     // For PNG we always render opaque now (and we'll splice an sRGB chunk
@@ -457,7 +467,7 @@
             console.warn('Server render failed, falling back to html2canvas');
           }
           const ex = exportFor(asset);
-          const canvas = await captureNode(node, asset.w, asset.h, { opaque: ex.opaque });
+          const canvas = await captureNode(node, asset.w, captureHeight(node, asset), { opaque: ex.opaque });
           const rawBlob = await canvasToBlob(canvas, ex.mime, ex.quality);
           const finalBlob = await finaliseBlob(rawBlob, ex.mime, { coverAsset: !!asset.coverAsset });
           triggerDownload(finalBlob, asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext);
@@ -623,7 +633,7 @@
           }
           if (!added) {
             const ex = exportFor(asset);
-            const canvas = await captureNode(node, asset.w, asset.h, { opaque: ex.opaque });
+            const canvas = await captureNode(node, asset.w, captureHeight(node, asset), { opaque: ex.opaque });
             const rawBlob = await canvasToBlob(canvas, ex.mime, ex.quality);
             const finalBlob = await finaliseBlob(rawBlob, ex.mime, { coverAsset: !!asset.coverAsset });
             zip.file(asset.id + '_' + aff.code + (cobrand ? '_cobrand' : '') + '.' + ex.ext, finalBlob);

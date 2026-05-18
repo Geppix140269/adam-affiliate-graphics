@@ -258,6 +258,7 @@
       id: 'partner_onepager',
       label: 'Partner one-pager (Asset #16)',
       w: W, h: H,
+      autoHeight: true,   // content-driven height — measured at render/capture
       Comp: ProductInfographic,
       noDark: true,
       group: 'Partner one-pager',

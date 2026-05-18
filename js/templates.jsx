@@ -14,7 +14,7 @@
  * that re-encodes the file can't mangle them.
  */
 (function () {
-  const { useRef } = React;
+  const { useRef, useState, useEffect } = React;
 
   const MIDDOT = "·";
   const NUMERO = "№";
@@ -809,11 +809,36 @@
 
   function Artboard({ asset, aff, dark, line, scale, cobrand, promos }) {
     const ref = useRef(null);
-    const { Comp, w, h } = asset;
+    const { Comp, w } = asset;
     const compProps = { aff, cobrand };
     if (!asset.noDark) compProps.dark = asset.forceLight ? false : asset.forceDark ? true : dark;
     if (asset.useLine) compProps.line = line;
     if (asset.usePromos) compProps.promos = promos;
+
+    // autoHeight assets (e.g. the Partner one-pager) have content-driven
+    // height. Measure the rendered inner element so the kit display and
+    // the export both use the true height, not a hardcoded guess.
+    const [measuredH, setMeasuredH] = useState(asset.h);
+    useEffect(() => {
+      if (!asset.autoHeight) return;
+      let cancelled = false;
+      const measure = () => {
+        if (cancelled) return;
+        const inner = ref.current && ref.current.firstElementChild;
+        if (inner) {
+          const hh = inner.scrollHeight || inner.offsetHeight;
+          if (hh && Math.abs(hh - measuredH) > 2) setMeasuredH(hh);
+        }
+      };
+      measure();
+      const t1 = setTimeout(measure, 400);
+      const t2 = setTimeout(measure, 1600);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+      return () => { cancelled = true; clearTimeout(t1); clearTimeout(t2); };
+    }, [asset.autoHeight, aff && aff.code]);
+
+    const h = asset.autoHeight ? measuredH : asset.h;
+
     return (
       <div className="artboard-wrap">
         <div className="artboard-meta">
@@ -831,7 +856,7 @@
           </div>
         </div>
         <div className="artboard-scaler" style={{ width: w * scale, height: h * scale }}>
-          <div ref={ref} data-asset-id={asset.id} className="artboard-frame" style={{ width: w, height: h, transform: `scale(${scale})` }}>
+          <div ref={ref} data-asset-id={asset.id} className="artboard-frame" style={{ width: w, height: asset.autoHeight ? 'auto' : h, transform: `scale(${scale})` }}>
             <Comp {...compProps} />
           </div>
         </div>
