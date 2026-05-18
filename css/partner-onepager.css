@@ -1,0 +1,528 @@
+/* ADAMftd Partner One-Pager / Asset #16
+   Source: Giuseppe's official partner-onepager.css.
+   Every selector is scoped under .onepager so it cannot collide with the
+   kit's own styles or CSS variables. The :root vars and body rules from
+   the original are folded into the .onepager rule. */
+
+.onepager {
+  --navy: #062345;
+  --navy-dark: #031529;
+  --blue: #0B4C83;
+  --teal: #00A99D;
+  --cyan: #33D7D2;
+  --orange: #F59E0B;
+  --purple: #7C3AED;
+  --white: #FFFFFF;
+  --off: #F8FAFC;
+  --line: #D8E4EE;
+  --text: #0B1F33;
+  --muted: #50667A;
+  --gold: #F4B942;
+  --radius: 18px;
+
+  width: 1200px;
+  min-height: 1800px;
+  background: var(--off);
+  overflow: hidden;
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  color: var(--text);
+}
+
+.onepager * { box-sizing: border-box; }
+
+.onepager .hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 320px 1fr 360px;
+  gap: 0;
+  min-height: 285px;
+  background:
+    radial-gradient(circle at 78% 30%, rgba(0,169,157,.35), transparent 30%),
+    linear-gradient(125deg, #031529 0%, #062345 48%, #07375d 100%);
+  color: var(--white);
+}
+
+.onepager .hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-radial-gradient(circle at 78% 36%, rgba(51,215,210,.15) 0 1px, transparent 1px 80px),
+    linear-gradient(90deg, transparent 40%, rgba(244,185,66,.08));
+  pointer-events: none;
+}
+
+.onepager .brand-panel {
+  position: relative;
+  z-index: 2;
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 34px;
+}
+
+.onepager .partner-logo {
+  width: 250px;
+  max-height: 220px;
+  object-fit: contain;
+}
+
+.onepager .hero-copy {
+  position: relative;
+  z-index: 2;
+  padding: 52px 38px;
+}
+
+.onepager .eyebrow {
+  color: var(--white);
+  font-weight: 800;
+  letter-spacing: .04em;
+  font-size: 28px;
+}
+
+.onepager .hero h1 {
+  margin: 12px 0;
+  font-size: 58px;
+  line-height: .98;
+  letter-spacing: .01em;
+  color: var(--cyan);
+  font-weight: 900;
+}
+
+.onepager .hero p {
+  margin: 18px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.onepager .ref-card {
+  position: relative;
+  z-index: 2;
+  align-self: start;
+  margin: 42px 28px 0 0;
+  padding: 24px 28px;
+  background: var(--white);
+  color: var(--text);
+  border: 2px solid var(--teal);
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
+}
+
+.onepager .label {
+  color: var(--teal);
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: .06em;
+}
+
+.onepager .ref-name {
+  margin-top: 8px;
+  font-size: 24px;
+  line-height: 1.12;
+  font-weight: 900;
+}
+
+.onepager .ref-role {
+  margin-top: 6px;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.onepager .verified {
+  position: absolute;
+  z-index: 2;
+  right: 28px;
+  bottom: 28px;
+  padding: 16px 22px;
+  background: rgba(3, 21, 41, .78);
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.onepager .intro {
+  display: grid;
+  grid-template-columns: 440px 1fr;
+  gap: 28px;
+  padding: 32px 38px 18px;
+  background: var(--white);
+}
+
+.onepager .intro h2 {
+  margin: 0 0 14px;
+  font-size: 28px;
+  line-height: 1.08;
+  color: var(--text);
+}
+
+.onepager .intro p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.onepager .metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.onepager .metric {
+  display: grid;
+  place-items: center;
+  min-height: 112px;
+  text-align: center;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(0,169,157,.12), rgba(11,76,131,.08));
+}
+
+.onepager .metric span {
+  display: block;
+  color: var(--blue);
+  font-size: 42px;
+  line-height: .95;
+  font-weight: 900;
+}
+
+.onepager .metric small {
+  margin-top: 7px;
+  display: block;
+  font-size: 14px;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.onepager .coverage-note {
+  grid-column: 2;
+  margin-top: -8px !important;
+  font-size: 13px !important;
+  color: var(--muted);
+}
+
+.onepager .benefits {
+  position: relative;
+  margin: 14px 30px 16px;
+  padding: 38px 28px 28px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #062345, #07365f);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  color: var(--white);
+}
+
+.onepager .section-tab {
+  position: absolute;
+  top: -16px;
+  left: 0;
+  background: var(--teal);
+  color: var(--white);
+  border-radius: 0 999px 999px 0;
+  padding: 9px 28px;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: .03em;
+}
+
+.onepager .benefit {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 18px;
+  align-items: center;
+  min-height: 126px;
+  border-right: 1px solid rgba(255,255,255,.25);
+}
+
+.onepager .benefit:last-child { border-right: 0; }
+
+.onepager .benefit-icon {
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal), var(--blue));
+  color: var(--white);
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.onepager .benefit h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+.onepager .benefit p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+  color: #D9EAF4;
+}
+
+.onepager .platform {
+  margin: 0 30px 16px;
+  padding: 18px 18px 14px;
+  border: 1px solid #BCD0DF;
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.onepager .platform h2 {
+  margin: 0 0 18px;
+  text-align: center;
+  font-size: 24px;
+  color: var(--text);
+}
+
+.onepager .platform-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 18px;
+}
+
+.onepager .platform-summary div {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 0 16px;
+  border-right: 1px solid var(--line);
+}
+
+.onepager .platform-summary div:last-child { border-right: 0; }
+
+.onepager .platform-summary strong {
+  color: var(--blue);
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+.onepager .platform-summary span {
+  font-size: 14px;
+  line-height: 1.25;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.onepager .columns {
+  display: grid;
+  grid-template-columns: 1fr 1.12fr 1fr;
+  gap: 16px;
+}
+
+.onepager .column {
+  border: 1px solid #C8D8E4;
+  border-radius: 14px;
+  padding: 18px 20px;
+  min-height: 360px;
+}
+
+.onepager .column h3 {
+  margin: 0 0 15px;
+  color: var(--blue);
+  font-size: 18px;
+  text-align: center;
+  border-bottom: 2px solid rgba(0,169,157,.45);
+  padding-bottom: 10px;
+}
+
+.onepager .column h4 {
+  margin: 14px 0 6px;
+  color: var(--blue);
+  font-size: 15px;
+}
+
+.onepager .column ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.onepager .column li { margin-bottom: 4px; }
+
+.onepager .tier-list li {
+  margin-bottom: 14px;
+  list-style: none;
+}
+
+.onepager .hormuz {
+  margin: 0 30px 16px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 0;
+  background: linear-gradient(135deg, #062345, #0B4C83);
+  color: var(--white);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.onepager .hormuz > div {
+  padding: 20px 26px;
+  border-right: 1px solid rgba(255,255,255,.25);
+}
+
+.onepager .hormuz > div:last-child { border-right: 0; }
+
+.onepager .hormuz strong {
+  display: block;
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.onepager .hormuz span,
+.onepager .hormuz p {
+  margin: 7px 0 0;
+  display: block;
+  font-size: 13px;
+  color: #DCECF5;
+  line-height: 1.3;
+}
+
+.onepager .commission {
+  margin: 0 30px 16px;
+  display: grid;
+  grid-template-columns: 1.45fr 1fr 1fr 1.35fr;
+  border: 1px solid #BCD0DF;
+  border-radius: var(--radius);
+  background: var(--white);
+  overflow: hidden;
+}
+
+.onepager .commission-left {
+  background: #F5FAFD;
+  border-right: 1px solid var(--line);
+  padding: 20px 26px;
+}
+
+.onepager .commission h2 {
+  margin: 0 0 10px;
+  color: var(--blue);
+  font-size: 21px;
+}
+
+.onepager .commission p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.onepager .commission-stat {
+  padding: 24px 22px;
+  border-right: 1px solid var(--line);
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+
+.onepager .commission-stat:last-child { border-right: 0; }
+
+.onepager .commission-stat strong {
+  color: var(--blue);
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.onepager .commission-stat span {
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.onepager .cta {
+  margin: 0 30px 16px;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr .95fr;
+  gap: 16px;
+}
+
+.onepager .code-box {
+  min-height: 160px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #062345, #0B4C83);
+  color: var(--white);
+  padding: 25px 28px;
+}
+
+.onepager .code-box .label {
+  color: #A8E6F1;
+  font-size: 14px;
+}
+
+.onepager .code {
+  margin-top: 12px;
+  font-size: 42px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .02em;
+}
+
+.onepager .link {
+  margin-top: 14px;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--cyan);
+}
+
+.onepager .start-box,
+.onepager .sub-box {
+  border: 1px solid #C8D8E4;
+  border-radius: var(--radius);
+  background: #F4FBF9;
+  padding: 22px 24px;
+}
+
+.onepager .start-box h2,
+.onepager .sub-box h2 {
+  margin: 0 0 14px;
+  color: var(--blue);
+  font-size: 21px;
+}
+
+.onepager .start-box ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.onepager .sub-box p {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.onepager .sub-box strong {
+  display: block;
+  color: var(--teal);
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.onepager .sub-box span {
+  font-size: 13px;
+}
+
+.onepager footer {
+  background: var(--navy);
+  color: #D9EAF4;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 24px;
+  align-items: center;
+  padding: 20px 34px;
+  font-size: 14px;
+}
+
+.onepager footer strong {
+  color: var(--white);
+  font-size: 20px;
+}
