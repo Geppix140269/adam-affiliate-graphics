@@ -526,6 +526,7 @@
       'Email':                         { id: 'email-graphics', label: 'Email graphics' },
       'Virtual presence':              { id: 'virtual', label: 'Virtual' },
       'Print':                         { id: 'print', label: 'Print' },
+      'Partner one-pager':             { id: 'one-pager', label: 'Partner one-pager' },
     }), []);
 
     const graphicsSubs = useMemo(() => {
