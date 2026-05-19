@@ -12,7 +12,7 @@
   const { useState, useEffect, useMemo, useRef } = React;
   const { ASSETS, POSITIONING_LINES, MIDDOT, Artboard,
     CaptionsCard, EmailsCard, DmsCard, PitchesCard, FaqCard, QrCard, PersonalLinksCard,
-    DemoScript,
+    DemoScript, SubAffiliatePanel,
     buildCaptionsTxt, buildEmailsTxt, buildDmsTxt, buildPitchesTxt, buildFaqTxt,
     renderQrToCanvas, canvasToPngBlob } = window.AGK;
 
@@ -453,6 +453,13 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
         <polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+    ),
+    referrals: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
       </svg>
     ),
   };
@@ -899,6 +906,17 @@
                 <button className="btn btn-large" onClick={downloadAllZip}>Download all (ZIP)</button>
                 <div className="download-hint">First click can take ~30 seconds while we render the LinkedIn / X / Facebook covers and the Demo Pocket Script PDF server-side. Subsequent downloads are faster.</div>
               </div>
+            </Tile>
+
+            <Tile
+              id="tile-subaffiliate"
+              icon={TILE_ICONS.referrals}
+              title="Sub-affiliate referrals"
+              sub="Refer Tier 2 sub-affiliates under you, and track them here."
+            >
+              {SubAffiliatePanel
+                ? <SubAffiliatePanel aff={aff} />
+                : <p>The referrals panel could not load. Refresh the page and try again.</p>}
             </Tile>
 
           </div>

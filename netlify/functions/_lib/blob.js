@@ -151,3 +151,37 @@ export async function getPromotions() {
 export async function setPromotions(data) {
   return writeBlob(KEY_PROMOTIONS, data);
 }
+
+// ---------- Sub-affiliate referrals ----------
+// Stored in a separate Blobs store, one key per referring affiliate code,
+// each holding an array of referral records (newest first). No seed file.
+
+const STORE_REFERRALS = 'sub_affiliate_referrals';
+
+function openNamedStore(name) {
+  const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
+  const token = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_API_TOKEN;
+  if (siteID && token) {
+    return getStore({ name, siteID, token });
+  }
+  return getStore(name);
+}
+
+export async function getReferrals(code) {
+  const store = openNamedStore(STORE_REFERRALS);
+  let data = null;
+  try {
+    data = await store.get(String(code), { type: 'json' });
+  } catch (_) { data = null; }
+  return Array.isArray(data) ? data : [];
+}
+
+export async function addReferral(code, referral) {
+  const store = openNamedStore(STORE_REFERRALS);
+  const list = await getReferrals(code);
+  list.unshift(referral);
+  // Keep the per-affiliate history bounded.
+  const trimmed = list.slice(0, 300);
+  await store.setJSON(String(code), trimmed);
+  return trimmed;
+}
