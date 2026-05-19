@@ -41,6 +41,39 @@ function looksLikeEmail(s) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
 
+function siteOrigin() {
+  return process.env.URL || process.env.DEPLOY_PRIME_URL || process.env.DEPLOY_URL ||
+         'https://adamftd-affiliates.netlify.app';
+}
+
+// Mirror the new referral into the Netlify Forms "sub-affiliate-referral"
+// form so a submission email can fire to ceo@adamftd.com. The form itself
+// is declared statically in /__forms.html for build-time detection.
+// Non-fatal: a notification failure must never break the referral itself.
+async function notifyByForm(record, aff) {
+  try {
+    const params = new URLSearchParams();
+    params.set('form-name', 'sub-affiliate-referral');
+    params.set('ma_code', aff.code || '');
+    params.set('ma_name', aff.full_name || '');
+    params.set('referral_id', record.id);
+    params.set('submitted_at', record.created_at);
+    for (const k of ['sub_name', 'sub_email', 'sub_company', 'sub_country', 'sub_phone',
+                      'sub_website', 'sub_role', 'sub_target', 'sub_pitch',
+                      'sub_relationship', 'notes']) {
+      params.set(k, record[k] || '');
+    }
+    const res = await fetch(siteOrigin() + '/', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    });
+    if (!res.ok) console.warn('sub-affiliate form notification HTTP', res.status);
+  } catch (e) {
+    console.warn('sub-affiliate form notification failed (non-fatal):', e?.message || e);
+  }
+}
+
 async function resolveAffiliate(key) {
   const affiliates = await getAffiliates();
   for (const [code, entry] of Object.entries(affiliates)) {
@@ -136,6 +169,7 @@ async function handle(req) {
   };
 
   const list = await addReferral(aff.code, record);
+  await notifyByForm(record, aff);
   return resp(200, { affiliate: aff, referral: publicReferral(record), referrals: list.map(publicReferral) });
 }
 
