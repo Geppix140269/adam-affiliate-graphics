@@ -23,6 +23,10 @@
 [functions."render-cover"]
   timeout = 26
 
+# Demo Pocket Script PDF render also uses headless Chromium.
+[functions."render-demo-pdf"]
+  timeout = 26
+
 # ---------- Admin page (pretty URL) ----------
 [[redirects]]
   from = "/admin"
