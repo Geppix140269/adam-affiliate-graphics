@@ -351,6 +351,7 @@ html, body { margin: 0; padding: 0; background: var(--canvas); font-family: "Int
   --d-danger: #e87a6c;
   --d-danger-soft: rgba(232,122,108,0.14);
 }
+body.theme-dark { background: #0c1622; }
 
 .dash-greeting { font-size: 24px; font-weight: 700; color: var(--d-navy); margin: 0 0 6px; letter-spacing: -0.018em; }
 .dash-greeting .name { color: var(--d-accent-dark); }
