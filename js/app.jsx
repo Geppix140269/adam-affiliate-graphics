@@ -10,8 +10,9 @@
  */
 (function () {
   const { useState, useEffect, useMemo, useRef } = React;
-  const { ASSETS, POSITIONING_LINES, MIDDOT, Artboard, ContentSection,
-    CaptionsCard, EmailsCard, DmsCard, PitchesCard, FaqCard, QrCard, PersonalLinksCard, PlaybookCard,
+  const { ASSETS, POSITIONING_LINES, MIDDOT, Artboard,
+    CaptionsCard, EmailsCard, DmsCard, PitchesCard, FaqCard, QrCard, PersonalLinksCard,
+    DemoScript,
     buildCaptionsTxt, buildEmailsTxt, buildDmsTxt, buildPitchesTxt, buildFaqTxt,
     renderQrToCanvas, canvasToPngBlob } = window.AGK;
 
@@ -422,6 +423,81 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  // ---------- Dashboard tile ----------
+
+  // Inline SVG tile icons, lifted from the dashboard mockup. SVG
+  // attributes are camelCased for JSX (stroke-width -> strokeWidth).
+  const TILE_ICONS = {
+    demo: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M3 3h18v18H3z" /><path d="M3 9h18M9 9v12" />
+      </svg>
+    ),
+    graphics: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M4 4h16v16H4z" /><circle cx="9" cy="9" r="2" /><path d="m21 15-5-5L5 21" />
+      </svg>
+    ),
+    content: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+      </svg>
+    ),
+    tools: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+      </svg>
+    ),
+    download: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+    ),
+  };
+  const TILE_CHEVRON = (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+
+  // Collapsible dashboard tile. Collapsed by default; the header toggles
+  // an inline max-height expand with a rotating chevron. Multiple tiles
+  // can be open at once (each owns its own state).
+  function Tile({ id, icon, title, badges, sub, count, hero, defaultExpanded, children }) {
+    const [expanded, setExpanded] = useState(!!defaultExpanded);
+    const toggle = () => setExpanded((e) => !e);
+    return (
+      <div className={'tile' + (hero ? ' hero' : '') + (expanded ? ' expanded' : '')} id={id}>
+        <div
+          className="tile-header"
+          onClick={toggle}
+          role="button"
+          tabIndex={0}
+          aria-expanded={expanded}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
+        >
+          <div className="tile-icon" aria-hidden>{icon}</div>
+          <div className="tile-text">
+            <div className="tile-title-row">
+              <span className="tile-title">{title}</span>
+              {badges}
+            </div>
+            {sub && <div className="tile-sub">{sub}</div>}
+          </div>
+          <div className="tile-meta">
+            {count && <span className="tile-count">{count}</span>}
+            <div className="tile-chevron" aria-hidden>{TILE_CHEVRON}</div>
+          </div>
+        </div>
+        <div className="tile-body">
+          <div className="tile-body-inner">{children}</div>
+        </div>
+      </div>
+    );
+  }
+
   // ---------- Generator ----------
 
   function Generator({ initialAff, cobrandedPartner, promotions, adminMode, onSignOut }) {
@@ -450,7 +526,14 @@
     }, []);
 
     const dark = mode === 'dark';
-    const maxArtboardW = Math.min(viewportW - 80, 1500);
+
+    // Flip the page background when the theme toggle is set to Dark so
+    // the dark tiles don't float on the light canvas.
+    useEffect(() => {
+      document.body.classList.toggle('theme-dark', dark);
+      return () => document.body.classList.remove('theme-dark');
+    }, [dark]);
+
     const cobrand = cobrandEnabled && partner ? { partner, hero_override: partner.hero_override } : null;
 
     useEffect(() => {
@@ -553,58 +636,16 @@
       return out;
     }, [GROUP_TO_SUB]);
 
-    // Sidebar IA — the navigation backbone.
-    const NAV_SECTIONS = useMemo(() => [
-      {
-        id: 'graphics', label: 'Graphics', icon: '📁',
-        sub: graphicsSubs.map(g => ({ id: g.id, label: g.label })),
-      },
-      {
-        id: 'content', label: 'Content', icon: '✍️',
-        sub: [
-          { id: 'captions', label: 'Captions' },
-          { id: 'emails',   label: 'Email templates' },
-          { id: 'dms',      label: 'DM / WhatsApp' },
-          { id: 'pitches',  label: 'Elevator pitches' },
-          { id: 'faq',      label: 'FAQ' },
-        ],
-      },
-      {
-        id: 'tools', label: 'Tools', icon: '🔳',
-        sub: [
-          { id: 'qr',       label: 'Personal QR code' },
-          { id: 'links',    label: 'Personal links' },
-          { id: 'playbook', label: 'Sales playbook' },
-        ],
-      },
-      {
-        id: 'download', label: 'Download', icon: '📦',
-        sub: [],
-      },
-    ], [graphicsSubs]);
-
-    // Scroll-spy — highlight the sub-section currently in view.
-    const [activeSub, setActiveSub] = useState('graphics');
-    useEffect(() => {
-      const els = document.querySelectorAll('[data-sub-id]');
-      if (els.length === 0) return;
-      const obs = new IntersectionObserver((entries) => {
-        const visible = entries
-          .filter(e => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible.length) setActiveSub(visible[0].target.dataset.subId);
-      }, { rootMargin: '-130px 0px -55% 0px', threshold: 0 });
-      els.forEach(el => obs.observe(el));
-      return () => obs.disconnect();
-    }, [graphicsSubs.length]);
-
-    function smoothScrollTo(id, e) {
-      if (e) e.preventDefault();
-      const target = document.getElementById(id);
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
     const totalGraphics = ASSETS.length;
+
+    // Artboard preview width inside a 2x2 grid tile. The dashboard is
+    // capped at 1180px; each grid cell is roughly half of that minus
+    // gaps and the tile body padding. Below 720px the grid is a single
+    // column so the cell spans the full dashboard width.
+    const isNarrow = viewportW <= 720;
+    const dashInnerW = Math.min(viewportW, 1180) - (isNarrow ? 28 : 48);
+    const gridCol = isNarrow ? dashInnerW : (dashInnerW - 18) / 2;
+    const maxArtboardW = Math.max(220, Math.floor(gridCol - (isNarrow ? 32 : 52)));
 
     async function downloadAllZip() {
       if (typeof JSZip === 'undefined') { alert('ZIP library failed to load. Refresh and try again.'); return; }
@@ -678,6 +719,19 @@
         } catch (e) {
           console.warn('Could not add playbook to zip', e);
         }
+        // Demo Pocket Script — printable PDF at the root of the bundle.
+        try {
+          setProgress({ current: frames.length, total: frames.length, stage: 'Adding Demo Pocket Script PDF' });
+          const r = await fetch('/api/demo-pdf');
+          if (r.ok) {
+            const pdf = await r.blob();
+            zip.file('Demo_Pocket_Script.pdf', pdf);
+          } else {
+            console.warn('demo-pdf returned', r.status);
+          }
+        } catch (e) {
+          console.warn('Could not add Demo Pocket Script PDF to zip', e);
+        }
         setProgress({ current: frames.length, total: frames.length, stage: 'Bundling ZIP' });
         const zipBlob = await zip.generateAsync({ type: 'blob' });
         const today = new Date().toISOString().slice(0, 10);
@@ -743,146 +797,112 @@
           <CobrandSetup partner={partner} onChange={setPartner} />
         )}
 
-        {/* Mobile horizontal pill bar — top-level sections only */}
-        <nav className="kit-mobile-nav" aria-label="Kit sections (mobile)">
-          {NAV_SECTIONS.map(s => (
-            <a
-              key={s.id}
-              href={'#' + s.id}
-              onClick={(e) => smoothScrollTo(s.id, e)}
-              className={(activeSub === s.id || s.sub.some(x => x.id === activeSub)) ? 'active' : ''}
+        <main className={'dashboard' + (dark ? ' dark' : '')}>
+          <h1 className="dash-greeting">Welcome, <span className="name">{aff.first_name}</span>.</h1>
+          <p className="dash-greeting-sub">Your personalised ADAMftd Partner Kit. Click any tile to expand.</p>
+
+          {welcomeOpen
+            ? <Welcome aff={aff} promos={promotions || []} onDismiss={() => setWelcomeOpen(false)} />
+            : <button className="show-welcome-pill" onClick={() => setWelcomeOpen(true)}>Show welcome</button>
+          }
+
+          {/* HERO TILE: Demo Pocket Script (collapsed by default) */}
+          <Tile
+            id="tile-demo"
+            hero
+            icon={TILE_ICONS.demo}
+            title="Demo Pocket Script"
+            badges={<>
+              <span className="tile-badge">New</span>
+              <span className="tile-badge muted">Trader track v1.4</span>
+            </>}
+            sub="10-minute live walkthrough every Affiliate uses on a prospect call. Screen by screen, talk track by talk track."
+            count="7 modules"
+          >
+            {DemoScript
+              ? <DemoScript />
+              : <p>The Demo Pocket Script could not load. Refresh the page and try again.</p>}
+          </Tile>
+
+          {/* 2x2 GRID: Graphics, Content, Tools, Download */}
+          <div className="tile-grid">
+
+            <Tile
+              id="tile-graphics"
+              icon={TILE_ICONS.graphics}
+              title="Graphics"
+              sub="Personalised covers, social posts, share cards, one-pager."
+              count={totalGraphics + ' assets'}
             >
-              <span className="kit-mobile-icon">{s.icon}</span> {s.label}
-            </a>
-          ))}
-        </nav>
-
-        <div className="kit-layout">
-          {/* Desktop sidebar */}
-          <aside className="kit-sidebar" aria-label="Kit navigation">
-            <nav>
-              {NAV_SECTIONS.map(s => (
-                <div className="kit-sidebar-section" key={s.id}>
-                  <a
-                    href={'#' + s.id}
-                    onClick={(e) => smoothScrollTo(s.id, e)}
-                    className={'kit-sidebar-top' + ((activeSub === s.id || s.sub.some(x => x.id === activeSub)) ? ' active' : '')}
-                  >
-                    <span className="kit-sidebar-icon" aria-hidden>{s.icon}</span>
-                    <span>{s.label}</span>
-                  </a>
-                  {s.sub.map(sub => (
-                    <a
-                      key={sub.id}
-                      href={'#' + sub.id}
-                      onClick={(e) => smoothScrollTo(sub.id, e)}
-                      className={'kit-sidebar-sub' + (activeSub === sub.id ? ' active' : '')}
-                    >{sub.label}</a>
-                  ))}
-                </div>
-              ))}
-            </nav>
-          </aside>
-
-          {/* Main pane */}
-          <main className="kit-main">
-            {/* Welcome line + hero cards */}
-            <div className="kit-greeting">Welcome, {aff.first_name}.</div>
-            <div className="hero-cards">
-              <a href="#graphics" className="hero-card" onClick={(e) => smoothScrollTo('graphics', e)}>
-                <span className="hero-card-icon" aria-hidden>📁</span>
-                <span className="hero-card-title">Graphics</span>
-                <span className="hero-card-meta">{totalGraphics} personalised assets</span>
-              </a>
-              <a href="#content" className="hero-card" onClick={(e) => smoothScrollTo('content', e)}>
-                <span className="hero-card-icon" aria-hidden>✍️</span>
-                <span className="hero-card-title">Content</span>
-                <span className="hero-card-meta">60+ copy blocks</span>
-              </a>
-              <a href="#tools" className="hero-card" onClick={(e) => smoothScrollTo('tools', e)}>
-                <span className="hero-card-icon" aria-hidden>🔳</span>
-                <span className="hero-card-title">Tools</span>
-                <span className="hero-card-meta">QR code + ref link</span>
-              </a>
-              <a href="#download" className="hero-card" onClick={(e) => smoothScrollTo('download', e)}>
-                <span className="hero-card-icon" aria-hidden>📦</span>
-                <span className="hero-card-title">Download</span>
-                <span className="hero-card-meta">Full ZIP bundle</span>
-              </a>
-            </div>
-
-            {welcomeOpen
-              ? <Welcome aff={aff} promos={promotions || []} onDismiss={() => setWelcomeOpen(false)} />
-              : <button className="show-welcome-pill" onClick={() => setWelcomeOpen(true)}>Show welcome</button>
-            }
-
-            {/* SECTION: Graphics */}
-            <section className="ia-section" id="graphics">
-              <h2 className="ia-section-h">📁 Graphics</h2>
               {graphicsSubs.map(g => (
-                <div className="ia-sub" id={g.id} data-sub-id={g.id} key={g.id}>
-                  <h3 className="ia-sub-h">{g.label}</h3>
+                <div className="tile-sect" key={g.id} id={g.id}>
+                  <h3 className="tile-sect-h">{g.label}</h3>
                   {g.items.map(asset => {
                     const scale = Math.min(1, maxArtboardW / asset.w);
-                    return <Artboard key={asset.id} asset={asset} aff={aff} dark={dark} line={line} scale={scale} cobrand={cobrand} promos={promos} />;
+                    return (
+                      <Artboard
+                        key={asset.id}
+                        asset={asset}
+                        aff={aff}
+                        dark={dark}
+                        line={line}
+                        scale={scale}
+                        cobrand={cobrand}
+                        promos={promos}
+                      />
+                    );
                   })}
                 </div>
               ))}
-            </section>
+            </Tile>
 
-            {/* SECTION: Content */}
-            <section className="ia-section" id="content">
-              <h2 className="ia-section-h">✍️ Content</h2>
-              <div className="ia-sub" id="captions" data-sub-id="captions">
-                <h3 className="ia-sub-h">Captions</h3>
-                <CaptionsCard aff={aff} inline />
-              </div>
-              <div className="ia-sub" id="emails" data-sub-id="emails">
-                <h3 className="ia-sub-h">Email templates</h3>
-                <EmailsCard aff={aff} inline />
-              </div>
-              <div className="ia-sub" id="dms" data-sub-id="dms">
-                <h3 className="ia-sub-h">DM / WhatsApp / Telegram</h3>
-                <DmsCard aff={aff} inline />
-              </div>
-              <div className="ia-sub" id="pitches" data-sub-id="pitches">
-                <h3 className="ia-sub-h">Elevator pitches</h3>
-                <PitchesCard aff={aff} inline />
-              </div>
-              <div className="ia-sub" id="faq" data-sub-id="faq">
-                <h3 className="ia-sub-h">FAQ</h3>
-                <FaqCard aff={aff} inline />
-              </div>
-            </section>
+            <Tile
+              id="tile-content"
+              icon={TILE_ICONS.content}
+              title="Content"
+              sub="Captions, email templates, DM scripts, elevator pitches, FAQ."
+              count="60+ blocks"
+            >
+              <div className="tile-sect"><h3 className="tile-sect-h">Captions</h3><CaptionsCard aff={aff} inline /></div>
+              <div className="tile-sect"><h3 className="tile-sect-h">Email templates</h3><EmailsCard aff={aff} inline /></div>
+              <div className="tile-sect"><h3 className="tile-sect-h">DM / WhatsApp / Telegram</h3><DmsCard aff={aff} inline /></div>
+              <div className="tile-sect"><h3 className="tile-sect-h">Elevator pitches</h3><PitchesCard aff={aff} inline /></div>
+              <div className="tile-sect"><h3 className="tile-sect-h">FAQ</h3><FaqCard aff={aff} inline /></div>
+            </Tile>
 
-            {/* SECTION: Tools */}
-            <section className="ia-section" id="tools">
-              <h2 className="ia-section-h">🔳 Tools</h2>
-              <div className="ia-sub" id="qr" data-sub-id="qr">
-                <h3 className="ia-sub-h">Personal QR code</h3>
-                <QrCard aff={aff} inline />
-              </div>
-              <div className="ia-sub" id="links" data-sub-id="links">
-                <h3 className="ia-sub-h">Personal links</h3>
-                <PersonalLinksCard aff={aff} inline />
-              </div>
-              <div className="ia-sub" id="playbook" data-sub-id="playbook">
-                <h3 className="ia-sub-h">Sales playbook</h3>
-                <PlaybookCard inline />
-              </div>
-            </section>
+            <Tile
+              id="tile-tools"
+              icon={TILE_ICONS.tools}
+              title="Tools"
+              sub="Personal QR code, your trackable referral link."
+              count="2 tools"
+            >
+              <div className="tile-sect"><h3 className="tile-sect-h">Personal QR code</h3><QrCard aff={aff} inline /></div>
+              <div className="tile-sect"><h3 className="tile-sect-h">Personal links</h3><PersonalLinksCard aff={aff} inline /></div>
+            </Tile>
 
-            {/* SECTION: Download */}
-            <section className="ia-section" id="download" data-sub-id="download">
-              <h2 className="ia-section-h">📦 Download</h2>
-              <div className="ia-download-block">
-                <p>Get every asset (15 graphics + 5 text files + 2 QR codes) bundled into a single ZIP.</p>
+            <Tile
+              id="tile-download"
+              icon={TILE_ICONS.download}
+              title="Download"
+              sub="Full ZIP bundle of every asset in your Kit."
+              count="1 file"
+            >
+              <div className="download-block">
+                <p>One ZIP with every personalised graphic, the content text files, your QR codes, and the Demo Pocket Script as a printable PDF.</p>
+                <ul className="download-list">
+                  <li>{totalGraphics} personalised graphics (PNG / JPG)</li>
+                  <li>Captions, emails, DMs, elevator pitches and FAQ as text files</li>
+                  <li>Your personal QR code (white and transparent)</li>
+                  <li>Demo_Pocket_Script.pdf</li>
+                </ul>
                 <button className="btn btn-large" onClick={downloadAllZip}>Download all (ZIP)</button>
-                <div className="ia-download-hint">First click can take ~30 seconds while we render the LinkedIn / X / Facebook covers server-side. Subsequent downloads are faster.</div>
+                <div className="download-hint">First click can take ~30 seconds while we render the LinkedIn / X / Facebook covers and the Demo Pocket Script PDF server-side. Subsequent downloads are faster.</div>
               </div>
-            </section>
-          </main>
-        </div>
+            </Tile>
+
+          </div>
+        </main>
 
         {progress && (
           <div className="progress-overlay" role="alert" aria-live="polite">

@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADAMftd Affiliate Demo Pocket Script (Trader Track) v1.4</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/adamftd-affiliate-lockup.png">
+<style>
+  :root {
+    --navy: #0a2540;
+    --navy-light: #14365e;
+    --accent: #00b8a9;
+    --accent-dark: #008a7e;
+    --bg: #f7f9fc;
+    --card: #ffffff;
+    --text: #1a2540;
+    --muted: #5a6678;
+    --border: #e2e8f0;
+    --warning: #f5a623;
+    --buyer: #4a7fc1;
+    --supplier: #b15c8f;
+    --tech: #6b46c1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    padding-bottom: 60px;
+  }
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: white;
+    padding: 40px 24px 32px;
+    text-align: center;
+  }
+  header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  header .subtitle {
+    background: var(--accent);
+    color: white;
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  header .version { opacity: 0.6; font-size: 12px; margin-top: 6px; }
+  header p {
+    opacity: 0.85;
+    font-size: 15px;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+  .nav {
+    position: sticky;
+    top: 0;
+    background: var(--navy);
+    z-index: 100;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-bottom: 2px solid var(--accent);
+  }
+  .nav-inner {
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+    max-width: 900px;
+    margin: 0 auto;
+    white-space: nowrap;
+  }
+  .nav a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.75;
+    transition: all 0.15s;
+  }
+  .nav a:hover { opacity: 1; background: rgba(255,255,255,0.08); }
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+  .qualifier-banner {
+    background: #fff8e8;
+    border: 2px solid var(--warning);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    color: var(--navy);
+  }
+  .qualifier-banner strong { display: block; color: var(--warning); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .intro-card {
+    background: var(--card);
+    border-left: 4px solid var(--accent);
+    padding: 20px 24px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .intro-card h2 {
+    font-size: 16px;
+    color: var(--navy);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .intro-card p {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .intro-card ul {
+    list-style: none;
+    margin-top: 12px;
+  }
+  .intro-card li {
+    padding: 4px 0;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .intro-card li::before {
+    content: "→";
+    color: var(--accent);
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  .module {
+    background: var(--card);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    scroll-margin-top: 80px;
+  }
+  .module-header {
+    background: var(--navy);
+    color: white;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .module-number {
+    background: var(--accent);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .module-header h2 {
+    font-size: 19px;
+    font-weight: 700;
+  }
+  .module-header .wow-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: auto;
+  }
+  .module-body {
+    padding: 20px 24px 24px;
+  }
+  .row {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .row-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--accent-dark);
+    margin-bottom: 6px;
+  }
+  .row-content {
+    font-size: 15px;
+    color: var(--text);
+  }
+  .talk-track {
+    background: #f0f7f6;
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-style: italic;
+    color: var(--navy);
+  }
+  .talk-track::before { content: "\201C"; font-size: 18px; color: var(--accent); margin-right: 2px; }
+  .talk-track::after { content: "\201D"; font-size: 18px; color: var(--accent); margin-left: 2px; }
+  .branch {
+    margin-top: 10px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .branch-label {
+    color: white;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .branch.buyer .branch-label { background: var(--buyer); }
+  .branch.supplier .branch-label { background: var(--supplier); }
+  .branch .talk-track { border-left-color: transparent; border-radius: 0; margin: 0; }
+  .branch.buyer .talk-track { background: #eaf1f9; }
+  .branch.supplier .talk-track { background: #f7eaf1; }
+  .close-q {
+    background: #fff8e8;
+    border-left: 3px solid var(--warning);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .close-q::before {
+    content: "Ask: ";
+    color: var(--warning);
+    font-weight: 700;
+  }
+  .screen-detail {
+    background: #f0eef7;
+    border-left: 3px solid var(--tech);
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--navy);
+    margin-top: 6px;
+  }
+  .screen-detail code {
+    background: rgba(0,0,0,0.05);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: var(--tech);
+  }
+  .caveat {
+    background: #fef0f0;
+    border-left: 3px solid #d9534f;
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--navy);
+    margin-top: 6px;
+  }
+  .caveat::before {
+    content: "Heads-up: ";
+    color: #d9534f;
+    font-weight: 700;
+  }
+  .extra-section {
+    background: var(--navy);
+    color: white;
+    border-radius: 10px;
+    padding: 24px;
+    margin-top: 32px;
+  }
+  .extra-section h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .extra-section p, .extra-section li {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 8px;
+  }
+  .extra-section ul { list-style: none; padding-left: 0; }
+  .extra-section li { padding-left: 20px; position: relative; }
+  .extra-section li::before {
+    content: "▸";
+    color: var(--accent);
+    position: absolute;
+    left: 0;
+  }
+  .bridges {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .bridge {
+    background: rgba(255,255,255,0.06);
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .bridge strong { color: var(--accent); }
+  .wildcard {
+    background: #f0eef7;
+    border: 2px dashed var(--tech);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--navy);
+  }
+  .wildcard strong { color: var(--tech); display: block; margin-bottom: 6px; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+  .institutional-note {
+    background: #f0f0f5;
+    border-left: 4px solid var(--supplier);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .institutional-note strong { color: var(--supplier); display: block; margin-bottom: 6px; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+  footer {
+    text-align: center;
+    padding: 32px 16px 16px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  footer a { color: var(--accent-dark); text-decoration: none; }
+  @media print {
+    .nav, header { background: white; color: var(--navy); }
+    .module-header { background: var(--navy); }
+    .extra-section { background: white; color: var(--navy); border: 2px solid var(--navy); }
+    .extra-section h2, .bridge strong { color: var(--navy); }
+    .bridge { background: #f0f0f0; }
+    body { background: white; }
+  }
+  @media (min-width: 700px) {
+    .bridges { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="subtitle">Trader Track</div>
+  <h1>Demo Pocket Script</h1>
+  <p>The 10-minute walkthrough every ADAMftd Affiliate uses on a prospect call with a buyer or seller of physical goods. Every screen, every button, every real number you should drop. Keep this open on your phone or second screen.</p>
+  <div class="version">v1.4 &middot; grounded against live platform 19 May 2026</div>
+</header>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#qualify">Qualify</a>
+    <a href="#how">How to use</a>
+    <a href="#m1">1. Open</a>
+    <a href="#m2">2. Search</a>
+    <a href="#m3">3. HS Disambiguator</a>
+    <a href="#m4">4. Views</a>
+    <a href="#m5">5. Pivot</a>
+    <a href="#m6">6. Tariffs</a>
+    <a href="#m7">7. Docs</a>
+    <a href="#bridges">Bridges</a>
+    <a href="#wildcards">Wildcards</a>
+    <a href="#close">Close</a>
+  </div>
+</nav>
+
+<main>
+
+  <section class="qualifier-banner" id="qualify">
+    <strong>Qualify the prospect in the first 60 seconds</strong>
+    This script is for <b>trading companies</b>: importers, exporters, distributors, manufacturers, trading houses, retailers. They buy or sell physical goods. If the prospect is an institutional consultant, commercial lawyer, trade finance provider, insurance underwriter or ratings agency, use the <b>Institutional Demo Script</b> instead. The institutional flow leads with verification and market reports, not with trade data discovery.
+  </section>
+
+  <section class="intro-card" id="how">
+    <h2>How to use this script</h2>
+    <p>This is a 10-12 minute live demo flow. Open the platform alongside the prospect at <b>adamftd.com</b>. Follow the order. Read the talk tracks word-for-word the first three times you do it, then make them yours.</p>
+    <ul>
+      <li>Total runtime: 10-12 minutes plus questions.</li>
+      <li>The single biggest WOW is the HS Disambiguator (Module 3) and the Trade History Pivot (Module 5).</li>
+      <li>Modules 4 (Views) and 7 (Docs) are optional add-ons. Drop them if the prospect is engaged on something else.</li>
+      <li>In Module 5 you must know whether the prospect is BUYER or SELLER. Ask at the end of Module 4.</li>
+      <li>Each module ends with the question in yellow. That is how you find their pain.</li>
+    </ul>
+  </section>
+
+  <article class="module" id="m1">
+    <div class="module-header">
+      <div class="module-number">1</div>
+      <h2>The Opening (60 seconds)</h2>
+    </div>
+    <div class="module-body">
+      <div class="row">
+        <div class="row-label">When to use</div>
+        <div class="row-content">First 60 seconds of every demo. Frame the magnet before you show anything.</div>
+      </div>
+      <div class="row">
+        <div class="row-label">Screen to open</div>
+        <div class="row-content">
+          The ADAM Assistant dashboard (the login landing screen).
+          <div class="screen-detail">URL: <code>adamftd.com/dashboard</code>. You will see the ADAM chat header, six quick-action cards (Top importers, Importing countries, Market price, Market sentiment, Retail snapshot, Consumer preferences), and a <b>Trade Data</b> entry in the left sidebar under TOOLS.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Talk track</div>
+        <div class="row-content">
+          <div class="talk-track">Tell me what you trade. A product, a market, an industry. In the next ten minutes I will show you everything we know about the people who already trade that thing globally. Real shipments. Real buyer names. Real supplier names. Real prices. Real volumes. Real dates. Not estimates. Not industry reports. Bills of lading. The actual transactions. Then I will show you what you do with that data. Calculate landed cost on a specific corridor. Generate the shipping documents. The whole thing lives in one platform.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Close the module</div>
+        <div class="row-content">
+          <div class="close-q">What product do you want me to search?</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article class="module" id="m2">
+    <div class="module-header">
+      <div class="module-number">2</div>
+      <h2>Market Search (60 seconds)</h2>
+    </div>
+    <div class="module-body">
+      <div class="row">
+        <div class="row-label">When to use</div>
+        <div class="row-content">Immediately after the opening. Goal: trigger the AI HS lookup.</div>
+      </div>
+      <div class="row">
+        <div class="row-label">Screen to open</div>
+        <div class="row-content">
+          Trade Data tool from sidebar.
+          <div class="screen-detail">Real page title: <b>Customs Declarations & Shipping Data</b>. URL: <code>adamftd.com/trade-data</code>. You will see Export Country, Import Country, HS Code or Product Name field, and Search button. Leave the countries on "Any Country" for the opener.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Talk track</div>
+        <div class="row-content">
+          <div class="talk-track">I am going to type the product the prospect just named. No HS code knowledge required, the platform handles that. I hit search. Watch what happens next, because this is where most platforms fall flat and ours does not.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Action</div>
+        <div class="row-content">
+          Type the product (e.g. <b>coffee</b>) in the HS Code or Product Name field and click Search. The "AI Lookup" tag will appear.
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article class="module" id="m3">
+    <div class="module-header">
+      <div class="module-number">3</div>
+      <h2>HS Disambiguator (90 seconds)</h2>
+      <span class="wow-badge">WOW</span>
+    </div>
+    <div class="module-body">
+      <div class="row">
+        <div class="row-label">When to use</div>
+        <div class="row-content">Triggers automatically after Module 2 search. This is one of two main WOW beats.</div>
+      </div>
+      <div class="row">
+        <div class="row-label">Screen to open</div>
+        <div class="row-content">
+          The "Select the best HS code for [product]" panel appears.
+          <div class="screen-detail">Each row shows: HS 6-digit code, <b>live buyer count</b>, <b>live supplier count</b>, the official product description, and real example brands. The top recommended row carries a green <b>Recommended</b> badge.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Talk track</div>
+        <div class="row-content">
+          <div class="talk-track">You typed coffee. The platform broke that into the real HS categories used in customs filings. Roasted coffee beans: 4,575 buyers, 2,510 suppliers globally. Unroasted green coffee beans: 11,289 buyers, 5,174 suppliers. Instant coffee: 6,000 buyers, 3,363 suppliers. These are real companies filing real customs paperwork. Even better, the platform shows you what brand names sit inside each category. Starbucks Whole Bean. Lavazza Espresso. Nespresso. Nestle. So you do not need to know HS codes. You pick the one that matches what you sell or buy and we do the rest.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Action</div>
+        <div class="row-content">
+          Click the Recommended row. The platform resolves it with a <b>High Confidence</b> badge. The search refines automatically.
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Close the module</div>
+        <div class="row-content">
+          <div class="close-q">When you classify a product today for customs or quotes, who does that and how often does it slow you down?</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article class="module" id="m4">
+    <div class="module-header">
+      <div class="module-number">4</div>
+      <h2>12 Views on the Same Data (90 seconds)</h2>
+      <span class="wow-badge">WOW</span>
+    </div>
+    <div class="module-body">
+      <div class="row">
+        <div class="row-label">When to use</div>
+        <div class="row-content">Right after the HS code resolves. Show the breadth before you drill into one company.</div>
+      </div>
+      <div class="row">
+        <div class="row-label">Screen to open</div>
+        <div class="row-content">
+          The "VIEW RESULTS AS" panel below the search.
+          <div class="screen-detail">12 buttons: Buyer Countries, Supplier Countries, <b>Buyers</b>, <b>Suppliers</b>, <b>Bills of Lading</b>, Unit Price (Buyers), Unit Price (Suppliers), Market Avg Price, Market Analytics, Delivery Ports, Origin Ports, Tariffs. Plus a unit toggle: USD / B/L / WEIGHT / QTY. Plus three layout icons (treemap, two-pane, table) and Export button.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Talk track</div>
+        <div class="row-content">
+          <div class="talk-track">One search, twelve angles. Want to see which countries import the most? Click. Which buyers? Click. Which bills of lading were filed last quarter? Click. What was the average unit price paid by buyers in Mexico versus buyers in Japan? Two clicks. Which port handles the most volume into your country? One click. The platform is built so you do not need a data analyst. You just click the angle you need.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Action</div>
+        <div class="row-content">
+          Click <b>Buyers</b>. Switch to the <b>table view</b> icon (third icon, far right). Toast confirms "Found [N] records." Real numbers appear: top buyer Nestle Argentina S.a $28.03M, Nespresso Mexico $22.26M, WAL-MART $20.4M.
+        </div>
+      </div>
+      <div class="caveat">There is a banner: "US Dollar values are not recorded for the majority of US imports and exports." If the prospect is US-heavy, toggle to <b>B/L</b> or <b>WEIGHT</b> so the numbers feel right.</div>
+      <div class="row">
+        <div class="row-label">Close the module</div>
+        <div class="row-content">
+          <div class="close-q">Quick check before I drill in. Are you on the buy side or the sell side of this product?</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article class="module" id="m5">
+    <div class="module-header">
+      <div class="module-number">5</div>
+      <h2>Trade History Pivot (2 minutes)</h2>
+      <span class="wow-badge">WOW</span>
+    </div>
+    <div class="module-body">
+      <div class="row">
+        <div class="row-label">When to use</div>
+        <div class="row-content">After Module 4. This is THE pivot. You now know if the prospect is BUYER or SELLER. Use the matching branch below.</div>
+      </div>
+      <div class="row">
+        <div class="row-label">Screen to open</div>
+        <div class="row-content">
+          Click a company name in the Buyers table. You land on the company profile page.
+          <div class="screen-detail">Tabs across the top: <b>Overview</b>, Contacts, Web & Media, Reviews, Trade Analytics, HS Codes, <b>Customers</b> (who they sell to), <b>Suppliers</b> (who they buy from), <b>Bills of Lading</b>. Plus three buttons top right: PDF Report, Bookmark, Enrich Company. The Overview shows Total Buyers, Total Suppliers, Jurisdiction, Status (Active/Inactive), and <b>Sanctions (Clear / Flagged)</b>.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Talk track</div>
+        <div class="row-content">
+          <div class="branch buyer">
+            <div class="branch-label">If prospect is a BUYER</div>
+            <div class="talk-track">You buy this product. Here is one of the suppliers we just saw. We are now on the company profile. Sanctions status: Clear. Jurisdiction: visible. Click Customers tab. Now you see every buyer this supplier sells to, the trade value, the bills of lading count, the weight, the share of their total business. You can see if they give your competitor a better deal. You can see if they ship to anyone on a watchlist you care about. Click Suppliers tab if you want to see who they source from. Click Bills of Lading for every individual shipment. Before you renegotiate, before you onboard them, you walk in knowing everything.</div>
+          </div>
+          <div class="branch supplier">
+            <div class="branch-label">If prospect is a SELLER</div>
+            <div class="talk-track">You sell this product. Here is one of the buyers we just saw. We are now on the company profile. Sanctions status: Clear. Active company. Click Suppliers tab. Now you see every supplier they currently buy from. Trade value, bills of lading count, weight, quantity, share. Look at this. Their number one supplier owns 50.4 percent of their volume. The number two supplier is 48.3 percent. There is a 1.2 percent third player. You walk into your pitch knowing exactly what you are competing against, what they pay, and where the gap is.</div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Close the module</div>
+        <div class="row-content">
+          <div class="close-q">Imagine you had this view on every counterparty you negotiate with this year. What would it change?</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article class="module" id="m6">
+    <div class="module-header">
+      <div class="module-number">6</div>
+      <h2>Duty and Landed Cost (90 seconds)</h2>
+    </div>
+    <div class="module-body">
+      <div class="row">
+        <div class="row-label">When to use</div>
+        <div class="row-content">After the pivot. Frame as "you found the deal, now what does it actually cost to land?"</div>
+      </div>
+      <div class="row">
+        <div class="row-label">Screen to open</div>
+        <div class="row-content">
+          Sidebar: <b>HS, Tariffs & Landed Costs</b>.
+          <div class="screen-detail">Real page title: <b>Duty & Tariff Calculator</b>. URL: <code>adamftd.com/calculator</code>. Three numbered fields: Origin Country (From), Destination Country (To), HS Code or Product Description. There is also a History tab and a Transparency link.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Talk track</div>
+        <div class="row-content">
+          <div class="talk-track">Same product. Pick origin. Pick destination. The platform asks "do you want full landed cost?" If yes, you add quantity and sale price and we model duties, fees, VAT, and import taxes. If you just want the duty picture, click Skip. Either way you get: the MFN duty rate, the WTO bound rate, any preferential trade agreement, additional fees like Merchandise Processing and Harbor Maintenance, state and local sales tax range, plus any political surcharges with their current legal status. For example, on coffee Brazil to USA, MFN is zero percent, but there is a ten percent Section 122 surcharge whose legal status is currently challenged. That kind of footnote is the difference between a confident quote and a missed margin.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Bonus</div>
+        <div class="row-content">
+          The same screen lists <b>Regulatory Requirements</b> (FDA, USDA APHIS for coffee), and a <b>Required Documents</b> badge. There is also an <b>Export Certificate</b> button and a Simplified / Detailed toggle.
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Close the module</div>
+        <div class="row-content">
+          <div class="close-q">When you quote a deal today, how confident are you in the landed cost number?</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article class="module" id="m7">
+    <div class="module-header">
+      <div class="module-number">7</div>
+      <h2>Documents and CRM (90 seconds)</h2>
+    </div>
+    <div class="module-body">
+      <div class="row">
+        <div class="row-label">When to use</div>
+        <div class="row-content">Closing module. The "and then what" payoff that turns intelligence into operations.</div>
+      </div>
+      <div class="row">
+        <div class="row-label">Screen to open</div>
+        <div class="row-content">
+          Sidebar: CRM → <b>Documents</b>, then click <b>Generate with AI</b>.
+          <div class="screen-detail">Real page title: <b>AI Document Generator</b>. URL: <code>adamftd.com/crm/documents/generator</code>. Tagline: "Generate professional trade documents with AI-powered branding. Choose from <b>331 document types across 12 categories</b>." Categories include Sales & Buyer Acquisition (25), Contracts & Agreements (40), Trade Finance (29), Shipment & Logistics (32), Customs (33), Regulatory (35), Supply Chain Due Diligence & ESG (30), Procurement (25), Operations (25), Legal Notices (25), Insurance & Claims (20), Trade Events (12).</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Talk track</div>
+        <div class="row-content">
+          <div class="talk-track">Now it gets operational. 331 trade document templates across twelve categories, ready to generate with AI-powered branding. Proforma invoice. Commercial invoice. Packing list. Certificate of Origin. NDA. Distribution contract. Cargo insurance claim. ESG due diligence report. Cross-border travel letter. They auto-populate from the data already in the platform. Branded PDFs in seconds. The trade intelligence becomes paperwork without leaving the tab.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">Close the module</div>
+        <div class="row-content">
+          <div class="close-q">How many tools does your team currently touch to move one shipment from quote to documents?</div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <section class="extra-section" id="bridges">
+    <h2>Bridges between modules</h2>
+    <p>One-liners to flow from one module into the next.</p>
+    <div class="bridges">
+      <div class="bridge"><strong>Search to HS Disambiguator:</strong> "Watch the next thing. You did not have to know any HS codes."</div>
+      <div class="bridge"><strong>HS to Views:</strong> "Now that we have the right code, look at the angles we can slice this from."</div>
+      <div class="bridge"><strong>Views to Pivot:</strong> "That is the market view. Now let me drill into one company so you can see what we know about them specifically."</div>
+      <div class="bridge"><strong>Pivot to Tariffs:</strong> "You have the counterparty. Next question, what does it actually cost to move the goods?"</div>
+      <div class="bridge"><strong>Tariffs to Docs:</strong> "You have the data and the cost. Last piece, how do you turn it into a transaction?"</div>
+      <div class="bridge"><strong>Any module to skip:</strong> "I will jump ahead because you mentioned X earlier and that is where this gets useful for you specifically."</div>
+    </div>
+  </section>
+
+  <div class="wildcard" id="wildcards">
+    <strong>Wildcard modules (drop in only when relevant)</strong>
+    <p style="margin-top: 8px;"><b>ADAM Assistant chat:</b> The dashboard chat lets the prospect type natural language like "top coffee importers in Mexico last year" and the platform answers conversationally. Use this if the prospect is non-technical or you want to show off the AI side.</p>
+    <p style="margin-top: 8px;"><b>Hormuz Impact:</b> A specialized 4-step wizard modeling oil shock scenarios across 5,000+ HS-6 product codes. Only relevant for energy traders, Middle East-exposed prospects, or commodity desks. Skip otherwise.</p>
+    <p style="margin-top: 8px;"><b>Other sidebar tools to mention (do not click in 10 minutes):</b> Sanctions, Tenders, Vessels & Ports, Trade Companies, Company Lookup, Countries, Market Reports, Market Analysis, Enrichment, Search History.</p>
+  </div>
+
+  <section class="extra-section" id="close">
+    <h2>Closing the call</h2>
+    <p>After the last module, do not summarise. Ask one of these.</p>
+    <ul>
+      <li>Of the seven things you saw, which one would change your work tomorrow?</li>
+      <li>If we gave your team a free seven-day trial starting Monday, what counterparty would you want to look up first?</li>
+      <li>Who else on your team should see this before you make a decision?</li>
+    </ul>
+    <p style="margin-top: 14px;">Then book the follow-up before you hang up. Calendar open on screen, propose two slots, close.</p>
+  </section>
+
+  <div class="institutional-note">
+    <strong>Different prospect, different demo</strong>
+    If the prospect is a consultant, commercial lawyer, trade finance provider, insurance underwriter or ratings agency, do not use this script. Their value driver is not finding deals. It is verifying real trading activity (Sanctions: Clear, Active status, Bills of Lading evidence), doing market analysis and sentiment (Market Reports, Market Analysis modules in the sidebar), and pulling structured intelligence reports. Switch to the Institutional Demo Script (separate page, in production).
+  </div>
+
+</main>
+
+<footer>
+  ADAMftd Master Affiliate Programme &middot; Trader Demo Pocket Script v1.4 &middot; Grounded against live platform 19 May 2026 &middot; Questions? Email <a href="mailto:partners@adamftd.com">partners@adamftd.com</a>
+</footer>
+
+</body>
+</html>
