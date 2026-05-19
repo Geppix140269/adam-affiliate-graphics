@@ -862,6 +862,157 @@
     );
   }
 
+  // ---------- Sub-affiliate referral view ----------
+  const REFERRAL_STATUS = [
+    { value: 'submitted', label: 'Submitted' },
+    { value: 'reviewing', label: 'In review' },
+    { value: 'approved',  label: 'Approved' },
+    { value: 'declined',  label: 'Not a fit' },
+  ];
+
+  function ReferralModal({ referral, onClose }) {
+    const r = referral || {};
+    function Row({ label, value }) {
+      if (!value) return null;
+      return (
+        <div className="row">
+          <label>{label}</label>
+          <div className="ref-view-val">{value}</div>
+        </div>
+      );
+    }
+    return (
+      <Modal
+        title={'Referral: ' + (r.sub_company || r.sub_name || 'sub-affiliate')}
+        onClose={onClose}
+        foot={<button className="btn-secondary" onClick={onClose}>Close</button>}
+      >
+        <Row label="Referred by" value={(r.ma_name ? r.ma_name + ' ' : '') + '(' + (r.ma_code || '') + ')'} />
+        <Row label="Submitted" value={fmtDate(r.created_at)} />
+        <Row label="Current status" value={(REFERRAL_STATUS.find(s => s.value === r.status) || {}).label || 'Submitted'} />
+        <Row label="Sub-affiliate name" value={r.sub_name} />
+        <Row label="Company" value={r.sub_company} />
+        <Row label="Email" value={r.sub_email} />
+        <Row label="Country" value={r.sub_country} />
+        <Row label="Phone" value={r.sub_phone} />
+        <Row label="Website" value={r.sub_website} />
+        <Row label="Role or title" value={r.sub_role} />
+        <Row label="Target market / vertical" value={r.sub_target} />
+        <Row label="Why they are a strong fit" value={r.sub_pitch} />
+        <Row label="Relationship to the affiliate" value={r.sub_relationship} />
+        <Row label="Other notes" value={r.notes} />
+      </Modal>
+    );
+  }
+
+  // ---------- Referrals tab ----------
+  function ReferralsTab({ toast }) {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
+    const [viewing, setViewing] = useState(null);
+    const [savingId, setSavingId] = useState(null);
+
+    const load = useCallback(async () => {
+      setLoading(true);
+      try {
+        const r = await apiCall('/api/admin/referrals');
+        setData(Array.isArray(r.referrals) ? r.referrals : []);
+      } catch (e) { toast('err', e.message); }
+      finally { setLoading(false); }
+    }, [toast]);
+
+    useEffect(() => { load(); }, [load]);
+
+    const rows = useMemo(() => {
+      const q = search.trim().toLowerCase();
+      if (!q) return data;
+      return data.filter((r) =>
+        [r.ma_code, r.ma_name, r.sub_name, r.sub_company, r.sub_email, r.sub_country, r.sub_target]
+          .some((v) => String(v || '').toLowerCase().includes(q))
+      );
+    }, [data, search]);
+
+    async function changeStatus(r, status) {
+      setSavingId(r.id);
+      setData((d) => d.map((x) => (x.id === r.id ? { ...x, status } : x)));
+      try {
+        await apiCall('/api/admin/referrals', {
+          method: 'PUT',
+          body: { affiliate_code: r.ma_code, referral_id: r.id, status },
+        });
+        toast('ok', 'Status updated');
+      } catch (e) {
+        toast('err', e.message);
+        load();
+      } finally {
+        setSavingId(null);
+      }
+    }
+
+    return (
+      <>
+        <div className="tbl-toolbar">
+          <input
+            className="search"
+            placeholder="Search by affiliate, company, name, email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <span className="count">{rows.length} of {data.length}</span>
+          <button className="btn-secondary" onClick={load} disabled={loading}>
+            {loading ? 'Loading...' : 'Refresh'}
+          </button>
+        </div>
+
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Affiliate</th>
+              <th>Sub-affiliate</th>
+              <th>Email</th>
+              <th>Target market</th>
+              <th>Submitted</th>
+              <th style={{ width: 130 }}>Status</th>
+              <th style={{ width: 80, textAlign: 'right' }}>View</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && <tr><td colSpan={7} className="empty-row">Loading...</td></tr>}
+            {!loading && rows.length === 0 && <tr><td colSpan={7} className="empty-row">No sub-affiliate referrals yet.</td></tr>}
+            {!loading && rows.map((r) => (
+              <tr key={r.id}>
+                <td className="mono">{r.ma_code}</td>
+                <td>
+                  {r.sub_company || '-'}
+                  <div style={{ fontSize: 12, color: 'rgba(15,27,45,0.55)' }}>{r.sub_name}</div>
+                </td>
+                <td className="mono" style={{ fontSize: 12 }}>{r.sub_email}</td>
+                <td>{r.sub_target}</td>
+                <td className="mono">{fmtDate(r.created_at)}</td>
+                <td>
+                  <select
+                    className="status-select"
+                    value={r.status || 'submitted'}
+                    disabled={savingId === r.id}
+                    onChange={(e) => changeStatus(r, e.target.value)}
+                  >
+                    {REFERRAL_STATUS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  </select>
+                </td>
+                <td className="actions">
+                  <button className="icon-btn" onClick={() => setViewing(r)} aria-label="View" title="View full referral">View</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {viewing && <ReferralModal referral={viewing} onClose={() => setViewing(null)} />}
+      </>
+    );
+  }
+
   // ---------- Root ----------
   function App() {
     const [authed, setAuthed] = useState(() => !!getToken());
@@ -891,10 +1042,12 @@
             <button className={tab === 'affiliates' ? 'active' : ''} onClick={() => setTab('affiliates')}>Affiliates</button>
             <button className={tab === 'cobranded' ? 'active' : ''} onClick={() => setTab('cobranded')}>Co-branded partners</button>
             <button className={tab === 'promotions' ? 'active' : ''} onClick={() => setTab('promotions')}>Promotions</button>
+            <button className={tab === 'referrals' ? 'active' : ''} onClick={() => setTab('referrals')}>Sub-affiliate referrals</button>
           </div>
           {tab === 'affiliates' && <AffiliatesTab toast={push} />}
           {tab === 'cobranded' && <CobrandedTab toast={push} />}
           {tab === 'promotions' && <PromotionsTab toast={push} />}
+          {tab === 'referrals' && <ReferralsTab toast={push} />}
         </div>
         <ToastTray items={items} />
       </>

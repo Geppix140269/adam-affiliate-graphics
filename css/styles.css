@@ -530,6 +530,83 @@ body.theme-dark { background: #0c1622; }
 .dashboard .download-hint { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--d-muted); line-height: 1.5; }
 .dashboard .download-list { margin: 4px 0 0; padding-left: 18px; font-size: 13px; color: var(--d-muted); line-height: 1.6; }
 
+/* ---- Sub-affiliate referrals tile ---- */
+.dashboard #tile-subaffiliate { grid-column: 1 / -1; }
+.dashboard .subaff { display: flex; flex-direction: column; gap: 14px; }
+.dashboard .subaff .tile-intro { margin: 0; }
+.dashboard .subaff .btn { align-self: flex-start; }
+.dashboard .subaff-empty {
+  font-size: 13px; color: var(--d-muted); line-height: 1.55;
+  background: var(--d-surface-soft); border: 1px dashed var(--d-border-hi);
+  border-radius: 8px; padding: 14px 16px;
+}
+.dashboard .subaff-msg { font-size: 13px; border-radius: 8px; padding: 11px 14px; line-height: 1.5; }
+.dashboard .subaff-msg.ok { background: rgba(45,138,126,0.10); border: 1px solid rgba(45,138,126,0.35); color: var(--d-accent-dark); }
+.dashboard .subaff-msg.err { background: rgba(208,74,59,0.08); border: 1px solid rgba(208,74,59,0.30); color: #8B2C20; }
+.dashboard.dark .subaff-msg.err { color: #f0a89f; }
+.dashboard .subaff-link { background: none; border: 0; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; padding: 0; }
+
+.dashboard .subaff-form {
+  display: flex; flex-direction: column; gap: 14px;
+  background: var(--d-surface-soft); border: 1px solid var(--d-border);
+  border-radius: 10px; padding: 18px 20px;
+}
+.dashboard .subaff-form-head {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--d-muted); margin-top: 4px;
+}
+.dashboard .subaff-form-head:first-child { margin-top: 0; }
+.dashboard .subaff-field { display: flex; flex-direction: column; gap: 5px; }
+.dashboard .subaff-field label { font-size: 13px; font-weight: 600; color: var(--d-navy); }
+.dashboard .subaff-req { color: #D04A3B; }
+.dashboard.dark .subaff-req { color: #e87a6c; }
+.dashboard .subaff-field input,
+.dashboard .subaff-field select,
+.dashboard .subaff-field textarea {
+  width: 100%; padding: 9px 12px; font-size: 14px; font-family: inherit;
+  border: 1px solid var(--d-border-hi); border-radius: 8px;
+  background: var(--d-surface); color: var(--d-text); outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.dashboard .subaff-field textarea { resize: vertical; min-height: 72px; }
+.dashboard .subaff-field input:focus,
+.dashboard .subaff-field select:focus,
+.dashboard .subaff-field textarea:focus {
+  border-color: var(--d-accent); box-shadow: 0 0 0 3px rgba(45,138,126,0.14);
+}
+.dashboard .subaff-help { font-size: 12px; color: var(--d-muted); }
+.dashboard .subaff-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+.dashboard .subaff-ghost {
+  background: transparent; border: 1px solid var(--d-border-hi); color: var(--d-muted);
+  border-radius: 6px; padding: 10px 16px; font-family: "Inter", sans-serif;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.dashboard .subaff-ghost:hover { color: var(--d-text); border-color: var(--d-accent); }
+
+.dashboard .subaff-list-head {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--d-muted); margin-top: 6px; padding-top: 14px;
+  border-top: 1px solid var(--d-border);
+}
+.dashboard .subaff-list { display: flex; flex-direction: column; gap: 8px; }
+.dashboard .subaff-item {
+  background: var(--d-surface-soft); border: 1px solid var(--d-border);
+  border-radius: 8px; padding: 12px 14px;
+}
+.dashboard .subaff-item-main { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dashboard .subaff-item-company { font-weight: 700; color: var(--d-navy); font-size: 14px; }
+.dashboard .subaff-item-meta { font-size: 12px; color: var(--d-muted); margin-top: 3px; line-height: 1.5; }
+.dashboard .subaff-item-date { font-size: 11px; color: var(--d-muted); margin-top: 5px; font-family: "JetBrains Mono", monospace; }
+.dashboard .subaff-status {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+  padding: 3px 8px; border-radius: 4px; white-space: nowrap; flex-shrink: 0;
+}
+.dashboard .subaff-status.status-submitted { background: rgba(45,138,126,0.12); color: var(--d-accent-dark); }
+.dashboard .subaff-status.status-reviewing { background: rgba(226,154,44,0.16); color: #9a6612; }
+.dashboard .subaff-status.status-approved { background: rgba(42,157,143,0.16); color: #1f6b62; }
+.dashboard .subaff-status.status-declined { background: rgba(15,27,45,0.08); color: var(--d-muted); }
+.dashboard.dark .subaff-status.status-reviewing { color: #f0b860; }
+
 /* ---- Mobile breakpoint (~720px) ---- */
 @media (max-width: 720px) {
   .dashboard { padding: 20px 14px 48px; }

@@ -151,3 +151,77 @@ export async function getPromotions() {
 export async function setPromotions(data) {
   return writeBlob(KEY_PROMOTIONS, data);
 }
+
+// ---------- Sub-affiliate referrals ----------
+// Stored in a separate Blobs store, one key per referring affiliate code,
+// each holding an array of referral records (newest first). No seed file.
+
+const STORE_REFERRALS = 'sub_affiliate_referrals';
+
+function openNamedStore(name) {
+  const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
+  const token = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_API_TOKEN;
+  if (siteID && token) {
+    return getStore({ name, siteID, token });
+  }
+  return getStore(name);
+}
+
+export async function getReferrals(code) {
+  const store = openNamedStore(STORE_REFERRALS);
+  let data = null;
+  try {
+    data = await store.get(String(code), { type: 'json' });
+  } catch (_) { data = null; }
+  return Array.isArray(data) ? data : [];
+}
+
+export async function addReferral(code, referral) {
+  const store = openNamedStore(STORE_REFERRALS);
+  const list = await getReferrals(code);
+  list.unshift(referral);
+  // Keep the per-affiliate history bounded.
+  const trimmed = list.slice(0, 300);
+  await store.setJSON(String(code), trimmed);
+  return trimmed;
+}
+
+// Admin: every referral across every affiliate, flattened. Each record
+// carries ma_code so the admin can see who referred it.
+export async function getAllReferrals() {
+  const store = openNamedStore(STORE_REFERRALS);
+  let keys = [];
+  try {
+    const res = await store.list();
+    keys = (res && Array.isArray(res.blobs) ? res.blobs : []).map((b) => b.key);
+  } catch (_) { keys = []; }
+
+  const out = [];
+  for (const code of keys) {
+    let list = null;
+    try { list = await store.get(code, { type: 'json' }); } catch (_) { list = null; }
+    if (Array.isArray(list)) {
+      for (const r of list) out.push({ ...r, ma_code: r.ma_code || code });
+    }
+  }
+  return out;
+}
+
+// Admin: update one referral's status in place.
+export async function updateReferralStatus(code, id, status) {
+  const store = openNamedStore(STORE_REFERRALS);
+  let list = null;
+  try { list = await store.get(String(code), { type: 'json' }); } catch (_) { list = null; }
+  if (!Array.isArray(list)) return false;
+  let found = false;
+  for (const r of list) {
+    if (r && r.id === id) {
+      r.status = status;
+      r.updated_at = nowIso();
+      found = true;
+      break;
+    }
+  }
+  if (found) await store.setJSON(String(code), list);
+  return found;
+}
