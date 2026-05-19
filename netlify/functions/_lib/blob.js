@@ -185,3 +185,43 @@ export async function addReferral(code, referral) {
   await store.setJSON(String(code), trimmed);
   return trimmed;
 }
+
+// Admin: every referral across every affiliate, flattened. Each record
+// carries ma_code so the admin can see who referred it.
+export async function getAllReferrals() {
+  const store = openNamedStore(STORE_REFERRALS);
+  let keys = [];
+  try {
+    const res = await store.list();
+    keys = (res && Array.isArray(res.blobs) ? res.blobs : []).map((b) => b.key);
+  } catch (_) { keys = []; }
+
+  const out = [];
+  for (const code of keys) {
+    let list = null;
+    try { list = await store.get(code, { type: 'json' }); } catch (_) { list = null; }
+    if (Array.isArray(list)) {
+      for (const r of list) out.push({ ...r, ma_code: r.ma_code || code });
+    }
+  }
+  return out;
+}
+
+// Admin: update one referral's status in place.
+export async function updateReferralStatus(code, id, status) {
+  const store = openNamedStore(STORE_REFERRALS);
+  let list = null;
+  try { list = await store.get(String(code), { type: 'json' }); } catch (_) { list = null; }
+  if (!Array.isArray(list)) return false;
+  let found = false;
+  for (const r of list) {
+    if (r && r.id === id) {
+      r.status = status;
+      r.updated_at = nowIso();
+      found = true;
+      break;
+    }
+  }
+  if (found) await store.setJSON(String(code), list);
+  return found;
+}
