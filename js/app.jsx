@@ -874,11 +874,24 @@
               id="tile-tools"
               icon={TILE_ICONS.tools}
               title="Tools"
-              sub="Personal QR code, your trackable referral link."
-              count="2 tools"
+              sub="Personal QR code, referral link, sub-affiliate referrals."
+              count="3 tools"
             >
               <div className="tile-sect"><h3 className="tile-sect-h">Personal QR code</h3><QrCard aff={aff} inline /></div>
               <div className="tile-sect"><h3 className="tile-sect-h">Personal links</h3><PersonalLinksCard aff={aff} inline /></div>
+              <div className="tile-sect">
+                <h3 className="tile-sect-h">Refer a sub-affiliate</h3>
+                <div className="download-block">
+                  <p>Know someone who would make a strong ADAMftd affiliate? Refer them as a Tier 2 sub-affiliate under you. Once they generate revenue, your commission share applies automatically.</p>
+                  <a
+                    className="btn"
+                    style={{ display: 'inline-block', textDecoration: 'none' }}
+                    href={'sub-affiliate-referral.html?ma=' + encodeURIComponent(aff.code)}
+                    target="_blank"
+                    rel="noopener"
+                  >Open the referral form</a>
+                </div>
+              </div>
             </Tile>
 
             <Tile
