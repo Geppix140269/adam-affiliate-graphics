@@ -13,7 +13,7 @@
   --canvas: #f0eee9;
 }
 
-html, body { margin: 0; padding: 0; background: var(--canvas); font-family: "Inter", system-ui, sans-serif; color: var(--ink); }
+html, body { margin: 0; padding: 0; background: var(--canvas); font-family: "Inter", "Noto Sans SC", "Noto Sans Arabic", system-ui, sans-serif; color: var(--ink); }
 * { box-sizing: border-box; }
 .boot { padding: 80px; text-align: center; color: rgba(15,27,45,0.55); font-family: "JetBrains Mono", monospace; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; }
 
@@ -620,3 +620,35 @@ body.theme-dark { background: #0c1622; }
 @media (min-width: 700px) {
   .dashboard .bridge-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ---- Language switcher (toolbar) ---- */
+.lang-switcher {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--ink3); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px; padding: 0 8px; cursor: pointer;
+}
+.lang-switcher-icon { font-size: 13px; opacity: 0.85; }
+.lang-switcher select {
+  background: transparent; color: #fff; border: 0; padding: 8px 4px;
+  font-family: "Inter", "Noto Sans SC", "Noto Sans Arabic", sans-serif;
+  font-size: 13px; outline: none; cursor: pointer;
+}
+.lang-switcher select option { color: #111; }
+
+/* ---- RTL (Arabic) ---- */
+html[dir="rtl"] .dashboard .how-to-card,
+html[dir="rtl"] .dashboard .talk-track,
+html[dir="rtl"] .dashboard .close-q,
+html[dir="rtl"] .dashboard .screen-detail,
+html[dir="rtl"] .dashboard .caveat,
+html[dir="rtl"] .dashboard .institutional-note,
+html[dir="rtl"] .dashboard .branch.buyer .talk-track,
+html[dir="rtl"] .dashboard .branch.supplier .talk-track {
+  border-left: none;
+  border-right: 3px solid var(--d-accent);
+}
+html[dir="rtl"] .dashboard .institutional-note { border-right-color: var(--d-supplier); }
+html[dir="rtl"] .dashboard .how-to-card li { padding: 3px 16px 3px 0; }
+html[dir="rtl"] .dashboard .how-to-card li::before { left: auto; right: 0; }
+html[dir="rtl"] .dashboard .dark-section li { padding-left: 0; padding-right: 16px; }
+html[dir="rtl"] .dashboard .dark-section li::before { left: auto; right: 0; }
