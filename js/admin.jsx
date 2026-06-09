@@ -101,7 +101,7 @@
           <h1>Admin sign-in</h1>
           <form onSubmit={submit} autoComplete="off">
             <input type="password" autoFocus value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Admin password" aria-label="Admin password" />
-            <button type="submit" disabled={busy}>{busy ? 'Signing in...' : 'Sign in'}</button>
+            <button type="submit" disabled={busy}>{busy ? 'Logging in...' : 'Log in'}</button>
           </form>
           {err && <div className="err">{err}</div>}
         </div>
