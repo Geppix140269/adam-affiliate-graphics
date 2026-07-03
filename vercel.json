@@ -3,14 +3,6 @@
   "cleanUrls": false,
   "functions": {
     "api/**/*.js": {
-      "includeFiles": "data/**"
-    },
-    "api/render-cover.js": {
-      "includeFiles": "data/**",
-      "maxDuration": 60,
-      "memory": 2048
-    },
-    "api/demo-pdf.js": {
       "includeFiles": "data/**",
       "maxDuration": 60,
       "memory": 2048
