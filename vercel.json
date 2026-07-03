@@ -8,12 +8,12 @@
     "api/render-cover.js": {
       "includeFiles": "data/**",
       "maxDuration": 60,
-      "memory": 3009
+      "memory": 2048
     },
     "api/demo-pdf.js": {
       "includeFiles": "data/**",
       "maxDuration": 60,
-      "memory": 3009
+      "memory": 2048
     }
   },
   "rewrites": [
