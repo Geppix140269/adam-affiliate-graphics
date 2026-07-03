@@ -9,7 +9,7 @@ Self-service marketing-asset generator + admin dashboard for the ADAMftd Affilia
 ## What it does
 
 ### Public side (kit.adamftd.com)
-An affiliate enters their code on a landing screen. The site validates the code against the live whitelist (Netlify Blobs, seeded from `data/affiliates.json` on first boot). If valid, 15 personalised marketing graphics render at their exact deliverable dimensions, with light/dark toggle, a hero-headline dropdown of pre-approved positioning lines, a per-asset Download PNG, and a single Download all (ZIP).
+An affiliate enters their code on a landing screen. The site validates the code against the live whitelist (Upstash Redis, seeded from `data/affiliates.json` on first boot). If valid, 15 personalised marketing graphics render at their exact deliverable dimensions, with light/dark toggle, a hero-headline dropdown of pre-approved positioning lines, a per-asset Download PNG, and a single Download all (ZIP).
 
 ### Co-branded mode (institutional partners only)
 If the affiliate's code also appears in the co-branded partners whitelist, a Co-brand toggle becomes visible next to Light/Dark. When toggled on, a setup strip appears (partner logo upload, short-name override, custom hero text) and all 15 templates re-render with an ADAMftd × Partner dual-lockup. Standard affiliates never see this toggle.
@@ -27,8 +27,8 @@ Changes propagate to the public site within ~5 seconds (the public read endpoint
 .
 ├── index.html                      Generator entry
 ├── admin.html                      Admin entry (served at /admin)
-├── netlify.toml                    Static + functions deploy config + API rewrites
-├── package.json                    Dependencies for Functions (@netlify/blobs, jsonwebtoken)
+├── vercel.json                     Static + functions deploy config + rewrites + headers
+├── package.json                    Dependencies for Functions (@upstash/redis, jsonwebtoken, sharp, puppeteer-core)
 ├── css/
 │   ├── styles.css                  Generator styles + co-brand strip
 │   └── admin.css                   Admin dashboard styles
@@ -39,18 +39,25 @@ Changes propagate to the public site within ~5 seconds (the public read endpoint
 ├── data/
 │   ├── affiliates.json             Seed for first boot
 │   └── cobranded_partners.json     Seed for first boot
-├── netlify/
-│   └── functions/
-│       ├── admin-login.js          POST  /api/admin/login
-│       ├── admin-affiliates.js     CRUD  /api/admin/affiliates  (+ CSV bulk)
-│       ├── admin-cobranded.js      CRUD  /api/admin/cobranded
-│       ├── public-data.js          GET   /api/data
-│       └── _lib/
-│           ├── auth.js             JWT issue/verify
-│           ├── blob.js             Netlify Blobs wrapper + seed-on-empty
-│           ├── ratelimit.js        5 attempts / 15 min on login
-│           ├── validation.js       Code + hex validators
-│           └── resp.js             JSON response helpers
+├── api/                            Vercel Functions (file-based routing)
+│   ├── admin/
+│   │   ├── login.js                POST  /api/admin/login
+│   │   ├── affiliates.js           CRUD  /api/admin/affiliates  (+ CSV bulk)
+│   │   ├── cobranded.js            CRUD  /api/admin/cobranded
+│   │   ├── promotions.js           GET/PUT /api/admin/promotions
+│   │   ├── referrals.js            GET/PUT /api/admin/referrals
+│   │   └── migrate.js              POST  /api/admin/migrate
+│   ├── validate.js                 POST  /api/validate (public gate)
+│   ├── sub-affiliate.js            POST  /api/sub-affiliate
+│   ├── render-cover.js             POST  /api/render-cover (headless Chromium)
+│   ├── demo-pdf.js                 GET   /api/demo-pdf (headless Chromium)
+│   ├── normalize-png.js            POST  /api/normalize-png (sharp)
+│   └── _lib/
+│       ├── auth.js                 JWT issue/verify
+│       ├── blob.js                 Upstash Redis wrapper + seed-on-empty
+│       ├── ratelimit.js            5 attempts / 15 min on login
+│       ├── validation.js           Code + hex validators
+│       └── resp.js                 JSON response helpers
 └── assets/
     └── adamftd-affiliate-lockup.png
 ```
@@ -64,13 +71,16 @@ git remote add origin https://github.com/<YOUR-ORG>/adam-affiliate-graphics.git
 git push -u origin main
 ```
 
-### 2. Connect Netlify to the repo
-- https://app.netlify.com/start → Import from Git → GitHub → pick the repo
-- Build settings: leave everything blank (the `netlify.toml` handles it)
+### 2. Connect Vercel to the repo
+- https://vercel.com/new → Import Git Repository → pick the repo
+- Framework preset: **Other**. Build settings: leave everything blank (the `vercel.json` handles it)
+- Install the **Upstash Redis** marketplace integration (Storage tab) and link it to the project
 - Click Deploy
 
+See `MIGRATION.md` for the full Netlify → Vercel migration notes.
+
 ### 3. Set environment variables (REQUIRED — admin won't work without these)
-In Netlify → Site configuration → Environment variables → Add:
+In Vercel → Project → Settings → Environment Variables → Add:
 
 | Variable | Value |
 |---|---|
@@ -82,16 +92,16 @@ Generate the JWT secret on Windows with PowerShell:
 -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 48 | ForEach-Object {[char]$_})
 ```
 
-After saving env vars, **redeploy** (Site → Deploys → Trigger deploy → Deploy site) so the Functions pick them up.
+After saving env vars, **redeploy** (Deployments → ⋯ → Redeploy) so the Functions pick them up.
 
 ### 4. Custom domain (kit.adamftd.com)
-- Cloudflare DNS → add `CNAME kit → <your-netlify-site>.netlify.app` (DNS only / grey cloud)
-- Netlify → Domain management → Add `kit.adamftd.com` → set as primary domain
-- Wait ~5 min for Let's Encrypt to provision HTTPS
+- Vercel → Project → Settings → Domains → Add `kit.adamftd.com`
+- Cloudflare DNS → add the CNAME Vercel shows (`cname.vercel-dns.com`) for `kit` (DNS only / grey cloud)
+- Wait a few minutes for HTTPS to provision
 
 ## Local development
 
-Functions need Netlify CLI; static-only preview works with plain Python.
+Functions need Vercel CLI; static-only preview works with plain Python.
 
 ### Static-only (generator + admin UI shell, no Functions)
 ```bash
@@ -102,13 +112,13 @@ python -m http.server 8765
 ```
 The generator falls back to reading `data/*.json` directly when `/api/data` 404s, so the public side works offline. The admin needs Functions.
 
-### Full local with Functions (Netlify CLI)
+### Full local with Functions (Vercel CLI)
 ```bash
-npm install -g netlify-cli   # one-time
+npm install -g vercel        # one-time
 cd C:\Development\adam-affiliate-graphics
 npm install
-netlify dev
-# everything on http://localhost:8888
+vercel dev
+# everything on http://localhost:3000
 ```
 For local Functions to work you must put `ADMIN_PASSWORD` + `ADMIN_JWT_SECRET` in a `.env` file in the repo root (the `.gitignore` already excludes it).
 

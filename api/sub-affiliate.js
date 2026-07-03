@@ -41,36 +41,60 @@ function looksLikeEmail(s) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
 
-function siteOrigin() {
-  return process.env.URL || process.env.DEPLOY_PRIME_URL || process.env.DEPLOY_URL ||
-         'https://adamftd-affiliates.netlify.app';
-}
-
-// Mirror the new referral into the Netlify Forms "sub-affiliate-referral"
-// form so a submission email can fire to ceo@adamftd.com. The form itself
-// is declared statically in /__forms.html for build-time detection.
+// Email a plain-text summary of the new referral via Resend
+// (https://resend.com). Entirely optional: if RESEND_API_KEY is not set the
+// notification is skipped silently — the referral itself is already
+// persisted in Redis and visible in the admin dashboard either way.
 // Non-fatal: a notification failure must never break the referral itself.
-async function notifyByForm(record, aff) {
+async function notifyByEmail(record, aff) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return;
   try {
-    const params = new URLSearchParams();
-    params.set('form-name', 'sub-affiliate-referral');
-    params.set('ma_code', aff.code || '');
-    params.set('ma_name', aff.full_name || '');
-    params.set('referral_id', record.id);
-    params.set('submitted_at', record.created_at);
-    for (const k of ['sub_name', 'sub_email', 'sub_company', 'sub_country', 'sub_phone',
-                      'sub_website', 'sub_role', 'sub_target', 'sub_pitch',
-                      'sub_relationship', 'notes']) {
-      params.set(k, record[k] || '');
-    }
-    const res = await fetch(siteOrigin() + '/', {
+    const to = process.env.NOTIFY_EMAIL || 'ceo@adamftd.com';
+    const from = process.env.NOTIFY_FROM || 'onboarding@resend.dev';
+    const lines = [
+      'New sub-affiliate referral',
+      '',
+      'Referring affiliate: ' + (aff.full_name || '') + ' (' + (aff.code || '') + ')',
+      'Referral ID: ' + record.id,
+      'Submitted at: ' + record.created_at,
+      '',
+      'Name: ' + (record.sub_name || ''),
+      'Email: ' + (record.sub_email || ''),
+      'Company: ' + (record.sub_company || ''),
+      'Country: ' + (record.sub_country || ''),
+      'Phone: ' + (record.sub_phone || ''),
+      'Website: ' + (record.sub_website || ''),
+      'Role: ' + (record.sub_role || ''),
+      'Target market: ' + (record.sub_target || ''),
+      'Relationship: ' + (record.sub_relationship || ''),
+      '',
+      'Pitch:',
+      record.sub_pitch || '',
+      '',
+      'Notes:',
+      record.notes || '',
+    ];
+    const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: params.toString(),
+      headers: {
+        'authorization': 'Bearer ' + apiKey,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        from,
+        to: [to],
+        subject: 'New sub-affiliate referral — ' + (record.sub_name || 'unknown') +
+                 ' via ' + (aff.code || 'unknown'),
+        text: lines.join('\n'),
+      }),
     });
-    if (!res.ok) console.warn('sub-affiliate form notification HTTP', res.status);
+    if (!res.ok) {
+      const detail = await res.text().catch(() => '');
+      console.warn('sub-affiliate Resend notification HTTP', res.status, detail.slice(0, 300));
+    }
   } catch (e) {
-    console.warn('sub-affiliate form notification failed (non-fatal):', e?.message || e);
+    console.warn('sub-affiliate Resend notification failed (non-fatal):', e?.message || e);
   }
 }
 
@@ -100,14 +124,18 @@ function publicReferral(r) {
   };
 }
 
-export default async (req) => {
+async function handler(req) {
   try {
     return await handle(req);
   } catch (e) {
     console.error('sub-affiliate fatal:', e?.stack || e);
     return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
   }
-};
+}
+
+// Vercel Node.js runtime Web Handler: the `fetch` export receives the
+// standard Request and handles all HTTP methods in one function.
+export default { fetch: handler };
 
 async function handle(req) {
   if (req.method !== 'POST') return methodNotAllowed(['POST']);
@@ -169,8 +197,6 @@ async function handle(req) {
   };
 
   const list = await addReferral(aff.code, record);
-  await notifyByForm(record, aff);
+  await notifyByEmail(record, aff);
   return resp(200, { affiliate: aff, referral: publicReferral(record), referrals: list.map(publicReferral) });
 }
-
-export const config = { path: '/api/sub-affiliate' };

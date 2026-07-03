@@ -11,8 +11,9 @@ Thumbs.db
 node_modules/
 npm-debug.log*
 
-# Netlify CLI local state
+# Deploy tooling local state (Netlify legacy + Vercel CLI)
 .netlify/
+.vercel/
 
 # Local
 .env

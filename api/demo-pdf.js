@@ -11,24 +11,35 @@ import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 import { resp, methodNotAllowed } from './_lib/resp.js';
 
-function siteOrigin() {
-  return process.env.URL || process.env.DEPLOY_PRIME_URL || process.env.DEPLOY_URL ||
-         'https://adamftd-affiliates.netlify.app';
+function siteOrigin(req) {
+  // Prefer the origin of the incoming request (works on production,
+  // preview and dev deployments alike). Fall back to the Vercel host
+  // env vars, then the production domain.
+  try {
+    const o = new URL(req.url).origin;
+    if (o && o !== 'null') return o;
+  } catch (_) { /* fall through */ }
+  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  return host ? 'https://' + host : 'https://kit.adamftd.com';
 }
 
-export default async (req) => {
+async function handler(req) {
   try {
     return await handle(req);
   } catch (e) {
-    console.error('render-demo-pdf fatal:', e?.stack || e);
+    console.error('demo-pdf fatal:', e?.stack || e);
     return resp(500, { error: 'PDF render failed: ' + (e?.message || 'unknown') });
   }
-};
+}
+
+// Vercel Node.js runtime Web Handler: the `fetch` export receives the
+// standard Request and handles all HTTP methods in one function.
+export default { fetch: handler };
 
 async function handle(req) {
   if (req.method !== 'GET' && req.method !== 'POST') return methodNotAllowed(['GET', 'POST']);
 
-  const url = siteOrigin() + '/demo-pocket-script.html';
+  const url = siteOrigin(req) + '/demo-pocket-script.html';
 
   let browser;
   try {
@@ -64,5 +75,3 @@ async function handle(req) {
     }
   }
 }
-
-export const config = { path: '/api/demo-pdf' };

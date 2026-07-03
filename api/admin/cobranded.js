@@ -1,9 +1,9 @@
 // /api/admin/cobranded (v2 function) — CRUD on co-branded partners.
 
-import { requireAuth } from './_lib/auth.js';
-import { getCobranded, setCobranded, nowIso } from './_lib/blob.js';
-import { isValidCode, isValidHex, normaliseCode, trimToLen } from './_lib/validation.js';
-import { resp, methodNotAllowed, parseJson } from './_lib/resp.js';
+import { requireAuth } from '../_lib/auth.js';
+import { getCobranded, setCobranded, nowIso } from '../_lib/blob.js';
+import { isValidCode, isValidHex, normaliseCode, trimToLen } from '../_lib/validation.js';
+import { resp, methodNotAllowed, parseJson } from '../_lib/resp.js';
 
 const STATUSES = new Set(['active', 'suspended']);
 const DEFAULT_COLOR = '#1F3A5F';
@@ -30,14 +30,18 @@ function validateRequired(fields) {
   return null;
 }
 
-export default async (req) => {
+async function handler(req) {
   try {
     return await handle(req);
   } catch (e) {
     console.error('admin-cobranded fatal:', e?.stack || e);
     return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
   }
-};
+}
+
+// Vercel Node.js runtime Web Handler: the `fetch` export receives the
+// standard Request and handles all HTTP methods in one function.
+export default { fetch: handler };
 
 async function handle(req) {
   const session = requireAuth(req);
@@ -104,4 +108,3 @@ async function handle(req) {
   }
 }
 
-export const config = { path: '/api/admin/cobranded' };

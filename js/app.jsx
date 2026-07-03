@@ -15,6 +15,7 @@
     DemoScript, SubAffiliatePanel,
     buildCaptionsTxt, buildEmailsTxt, buildDmsTxt, buildPitchesTxt, buildFaqTxt,
     renderQrToCanvas, canvasToPngBlob } = window.AGK;
+  const { LangProvider, useT, LanguageSwitcher } = window.AGK.i18n;
 
   const ADMIN_KEY = '1';
   const CONTACT_EMAIL = 'ceo@adamftd.com';
@@ -45,6 +46,7 @@
   // ---------- Gate ----------
 
   function Gate({ onResolve, prefill }) {
+    const { t } = useT();
     const [key, setKey] = useState(prefill || '');
     const [error, setError] = useState(null);
     const [busy, setBusy] = useState(false);
@@ -69,23 +71,23 @@
         <div className="gate-card">
           <div className="grad" />
           <img className="logo" src="assets/adamftd-affiliate-lockup.png" alt="ADAMftd Affiliate Programme" />
-          <h1>Welcome to the ADAMftd Partner Kit</h1>
-          <p className="sub">Click the personal link in your welcome email, or paste your access key below.</p>
+          <h1>{t('gate.title')}</h1>
+          <p className="sub">{t('gate.sub')}</p>
           <form onSubmit={handleSubmit} autoComplete="off">
             <input
               autoFocus
               value={key}
               onChange={(e) => setKey(e.target.value)}
-              placeholder="your-access-key"
+              placeholder={t('gate.placeholder')}
               spellCheck={false}
               aria-label="Access key"
               type="password"
             />
-            <button type="submit" disabled={busy}>{busy ? 'Checking...' : 'Continue'}</button>
+            <button type="submit" disabled={busy}>{busy ? t('gate.checking') : t('gate.continue')}</button>
           </form>
           {error && <div className="error">{error}</div>}
           <div className="help">
-            Don't have your link? Check your welcome email or write to <a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a>.
+            {t('gate.help')}<a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a>.
           </div>
         </div>
       </div>
@@ -508,6 +510,7 @@
   // ---------- Generator ----------
 
   function Generator({ initialAff, cobrandedPartner, promotions, adminMode, onSignOut }) {
+    const { t } = useT();
     const [aff, setAff] = useState(initialAff);
     const [mode, setMode] = useState('light');
     const [line, setLine] = useState(POSITIONING_LINES[0]);
@@ -761,34 +764,35 @@
         <div className="toolbar">
           <div className="toolbar-inner">
             <div className="who">
-              <span className="who-label">Generating for</span>
+              <span className="who-label">{t('tb.generatingFor')}</span>
               <span className="who-name">{aff.full_name}</span>
               <span className="who-code">{aff.code} {MIDDOT} adamftd.com/ref/{aff.code}</span>
             </div>
             <div className="field">
-              <label>Hero headline (banner, X header, share card)</label>
+              <label>{t('tb.heroLabel')}</label>
               <select value={line} onChange={(e) => setLine(e.target.value)}>
                 {POSITIONING_LINES.map(l => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
             <div className="pill" role="radiogroup" aria-label="Mode">
-              <button className={mode === 'light' ? 'active' : ''} onClick={() => setMode('light')}>Light</button>
-              <button className={mode === 'dark' ? 'active' : ''} onClick={() => setMode('dark')}>Dark</button>
+              <button className={mode === 'light' ? 'active' : ''} onClick={() => setMode('light')}>{t('tb.light')}</button>
+              <button className={mode === 'dark' ? 'active' : ''} onClick={() => setMode('dark')}>{t('tb.dark')}</button>
             </div>
             {cobrandedPartner && (
               <div className="pill" role="radiogroup" aria-label="Co-brand">
-                <button className={!cobrandEnabled ? 'active' : ''} onClick={() => setCobrandEnabled(false)}>Single</button>
-                <button className={cobrandEnabled ? 'active' : ''} onClick={() => setCobrandEnabled(true)}>Co-brand</button>
+                <button className={!cobrandEnabled ? 'active' : ''} onClick={() => setCobrandEnabled(false)}>{t('tb.single')}</button>
+                <button className={cobrandEnabled ? 'active' : ''} onClick={() => setCobrandEnabled(true)}>{t('tb.cobrand')}</button>
               </div>
             )}
             {promotions && promotions.length > 0 && (
               <div className="pill" role="radiogroup" aria-label="Promotions">
-                <button className={promosOn ? 'active' : ''} onClick={() => setPromosOn(true)}>Perks on</button>
-                <button className={!promosOn ? 'active' : ''} onClick={() => setPromosOn(false)}>Perks off</button>
+                <button className={promosOn ? 'active' : ''} onClick={() => setPromosOn(true)}>{t('tb.perksOn')}</button>
+                <button className={!promosOn ? 'active' : ''} onClick={() => setPromosOn(false)}>{t('tb.perksOff')}</button>
               </div>
             )}
-            <button className="btn" onClick={downloadAllZip}>Download all (ZIP)</button>
-            <button className="signout-link" onClick={onSignOut} title="Clear your saved key on this device">Sign out</button>
+            <LanguageSwitcher />
+            <button className="btn" onClick={downloadAllZip}>{t('tb.downloadZip')}</button>
+            <button className="signout-link" onClick={onSignOut} title="Clear your saved key on this device">{t('tb.signout')}</button>
             {adminMode && (
               <div className="admin-row">
                 <div className="field"><label>First name (admin)</label><input value={aff.first_name} onChange={(e) => adminUpdate('first_name', e.target.value)} /></div>
@@ -805,12 +809,12 @@
         )}
 
         <main className={'dashboard' + (dark ? ' dark' : '')}>
-          <h1 className="dash-greeting">Welcome, <span className="name">{aff.first_name}</span>.</h1>
-          <p className="dash-greeting-sub">Your personalised ADAMftd Partner Kit. Click any tile to expand.</p>
+          <h1 className="dash-greeting">{t('greet.hello', { name: aff.first_name })}</h1>
+          <p className="dash-greeting-sub">{t('greet.sub')}</p>
 
           {welcomeOpen
             ? <Welcome aff={aff} promos={promotions || []} onDismiss={() => setWelcomeOpen(false)} />
-            : <button className="show-welcome-pill" onClick={() => setWelcomeOpen(true)}>Show welcome</button>
+            : <button className="show-welcome-pill" onClick={() => setWelcomeOpen(true)}>{t('welcome.show')}</button>
           }
 
           {/* HERO TILE: Demo Pocket Script (collapsed by default) */}
@@ -818,13 +822,13 @@
             id="tile-demo"
             hero
             icon={TILE_ICONS.demo}
-            title="Demo Pocket Script"
+            title={t('demo.title')}
             badges={<>
-              <span className="tile-badge">New</span>
-              <span className="tile-badge muted">Trader track v1.4</span>
+              <span className="tile-badge">{t('demo.badgeNew')}</span>
+              <span className="tile-badge muted">{t('demo.badgeTrack')}</span>
             </>}
-            sub="10-minute live walkthrough every Affiliate uses on a prospect call. Screen by screen, talk track by talk track."
-            count="7 modules"
+            sub={t('demo.sub')}
+            count={t('demo.count')}
           >
             {DemoScript
               ? <DemoScript />
@@ -837,9 +841,9 @@
             <Tile
               id="tile-graphics"
               icon={TILE_ICONS.graphics}
-              title="Graphics"
-              sub="Personalised covers, social posts, share cards, one-pager."
-              count={totalGraphics + ' assets'}
+              title={t('graphics.title')}
+              sub={t('graphics.sub')}
+              count={t('graphics.count', { n: totalGraphics })}
             >
               {graphicsSubs.map(g => (
                 <div className="tile-sect" key={g.id} id={g.id}>
@@ -866,9 +870,9 @@
             <Tile
               id="tile-content"
               icon={TILE_ICONS.content}
-              title="Content"
-              sub="Captions, email templates, DM scripts, elevator pitches, FAQ."
-              count="60+ blocks"
+              title={t('content.title')}
+              sub={t('content.sub')}
+              count={t('content.count')}
             >
               <div className="tile-sect"><h3 className="tile-sect-h">Captions</h3><CaptionsCard aff={aff} inline /></div>
               <div className="tile-sect"><h3 className="tile-sect-h">Email templates</h3><EmailsCard aff={aff} inline /></div>
@@ -880,9 +884,9 @@
             <Tile
               id="tile-tools"
               icon={TILE_ICONS.tools}
-              title="Tools"
-              sub="Personal QR code, your trackable referral link."
-              count="2 tools"
+              title={t('tools.title')}
+              sub={t('tools.sub')}
+              count={t('tools.count')}
             >
               <div className="tile-sect"><h3 className="tile-sect-h">Personal QR code</h3><QrCard aff={aff} inline /></div>
               <div className="tile-sect"><h3 className="tile-sect-h">Personal links</h3><PersonalLinksCard aff={aff} inline /></div>
@@ -891,9 +895,9 @@
             <Tile
               id="tile-download"
               icon={TILE_ICONS.download}
-              title="Download"
-              sub="Full ZIP bundle of every asset in your Kit."
-              count="1 file"
+              title={t('download.title')}
+              sub={t('download.sub')}
+              count={t('download.count')}
             >
               <div className="download-block">
                 <p>One ZIP with every personalised graphic, the content text files, your QR codes, and the Demo Pocket Script as a printable PDF.</p>
@@ -911,8 +915,8 @@
             <Tile
               id="tile-subaffiliate"
               icon={TILE_ICONS.referrals}
-              title="Sub-affiliate referrals"
-              sub="Refer Tier 2 sub-affiliates under you, and track them here."
+              title={t('sub.title')}
+              sub={t('sub.sub')}
             >
               {SubAffiliatePanel
                 ? <SubAffiliatePanel aff={aff} />
@@ -1035,5 +1039,7 @@
     />;
   }
 
-  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <LangProvider><App /></LangProvider>
+  );
 })();

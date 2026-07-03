@@ -32,14 +32,18 @@ function checkRate(req) {
   return true;
 }
 
-export default async (req) => {
+async function handler(req) {
   try {
     return await handle(req);
   } catch (e) {
     console.error('public-validate fatal:', e?.stack || e);
     return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
   }
-};
+}
+
+// Vercel Node.js runtime Web Handler: the `fetch` export receives the
+// standard Request and handles all HTTP methods in one function.
+export default { fetch: handler };
 
 async function handle(req) {
   if (req.method !== 'POST') return methodNotAllowed(['POST']);
@@ -88,4 +92,3 @@ async function handle(req) {
   return resp(200, { affiliate: match, cobranded: cobrandedOut, promotions: promoList });
 }
 
-export const config = { path: '/api/validate' };

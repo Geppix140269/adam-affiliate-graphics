@@ -5,10 +5,10 @@
 // first_month_discount, market_report). Admin edits headline/detail/
 // enabled/order for each; the public side fetches them via validate.
 
-import { requireAuth } from './_lib/auth.js';
-import { getPromotions, setPromotions } from './_lib/blob.js';
-import { trimToLen } from './_lib/validation.js';
-import { resp, methodNotAllowed, parseJson } from './_lib/resp.js';
+import { requireAuth } from '../_lib/auth.js';
+import { getPromotions, setPromotions } from '../_lib/blob.js';
+import { trimToLen } from '../_lib/validation.js';
+import { resp, methodNotAllowed, parseJson } from '../_lib/resp.js';
 
 const ID_RE = /^[a-z0-9_]{2,40}$/;
 
@@ -24,14 +24,18 @@ function sanitiseOne(entry, fallback) {
   };
 }
 
-export default async (req) => {
+async function handler(req) {
   try {
     return await handle(req);
   } catch (e) {
     console.error('admin-promotions fatal:', e?.stack || e);
     return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
   }
-};
+}
+
+// Vercel Node.js runtime Web Handler: the `fetch` export receives the
+// standard Request and handles all HTTP methods in one function.
+export default { fetch: handler };
 
 async function handle(req) {
   const session = requireAuth(req);
@@ -66,4 +70,3 @@ async function handle(req) {
   return methodNotAllowed(['GET', 'PUT']);
 }
 
-export const config = { path: '/api/admin/promotions' };

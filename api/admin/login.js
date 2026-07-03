@@ -3,9 +3,9 @@
 // Returns: { token, expiresIn } on success, 401/429/500 otherwise.
 
 import crypto from 'node:crypto';
-import { issueToken, TOKEN_TTL_HOURS } from './_lib/auth.js';
-import { checkRate } from './_lib/ratelimit.js';
-import { resp, methodNotAllowed, parseJson } from './_lib/resp.js';
+import { issueToken, TOKEN_TTL_HOURS } from '../_lib/auth.js';
+import { checkRate } from '../_lib/ratelimit.js';
+import { resp, methodNotAllowed, parseJson } from '../_lib/resp.js';
 
 function timingSafeEq(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string') return false;
@@ -15,14 +15,18 @@ function timingSafeEq(a, b) {
   return crypto.timingSafeEqual(ab, bb);
 }
 
-export default async (req) => {
+async function handler(req) {
   try {
     return await handle(req);
   } catch (e) {
     console.error('admin-login fatal:', e?.stack || e);
     return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
   }
-};
+}
+
+// Vercel Node.js runtime Web Handler: the `fetch` export receives the
+// standard Request and handles all HTTP methods in one function.
+export default { fetch: handler };
 
 async function handle(req) {
   if (req.method !== 'POST') return methodNotAllowed(['POST']);
@@ -38,7 +42,7 @@ async function handle(req) {
   const secret = process.env.ADMIN_JWT_SECRET;
   if (!expected || !secret) {
     return resp(500, {
-      error: 'Server is not configured. Set ADMIN_PASSWORD and ADMIN_JWT_SECRET in Netlify env vars.',
+      error: 'Server is not configured. Set ADMIN_PASSWORD and ADMIN_JWT_SECRET in Vercel env vars.',
     });
   }
 
@@ -53,4 +57,3 @@ async function handle(req) {
   return resp(200, { token, expiresIn: TOKEN_TTL_HOURS * 60 * 60 });
 }
 
-export const config = { path: '/api/admin/login' };

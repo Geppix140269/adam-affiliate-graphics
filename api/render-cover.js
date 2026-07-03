@@ -24,13 +24,19 @@ const COVER_SPECS = {
   zoom_background:  { w: 1920, h: 1080 },
 };
 
-function siteOrigin() {
-  // Netlify injects URL/DEPLOY_URL. Fall back to the prod host.
-  return process.env.URL || process.env.DEPLOY_PRIME_URL || process.env.DEPLOY_URL ||
-         'https://adamftd-affiliates.netlify.app';
+function siteOrigin(req) {
+  // Prefer the origin of the incoming request (works on production,
+  // preview and dev deployments alike). Fall back to the Vercel host
+  // env vars, then the production domain.
+  try {
+    const o = new URL(req.url).origin;
+    if (o && o !== 'null') return o;
+  } catch (_) { /* fall through */ }
+  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  return host ? 'https://' + host : 'https://kit.adamftd.com';
 }
 
-function buildRenderUrl(input) {
+function buildRenderUrl(input, origin) {
   const params = new URLSearchParams({
     asset: input.asset,
     code: input.aff.code,
@@ -53,17 +59,21 @@ function buildRenderUrl(input) {
     const csv = input.promos.map(p => enc(p.headline) + '|' + enc(p.detail)).join(',');
     if (csv) params.set('promos', csv);
   }
-  return siteOrigin() + '/render?' + params.toString();
+  return origin + '/render?' + params.toString();
 }
 
-export default async (req) => {
+async function handler(req) {
   try {
     return await handle(req);
   } catch (e) {
     console.error('render-cover fatal:', e?.stack || e);
     return resp(500, { error: 'Render failed: ' + (e?.message || 'unknown') });
   }
-};
+}
+
+// Vercel Node.js runtime Web Handler: the `fetch` export receives the
+// standard Request and handles all HTTP methods in one function.
+export default { fetch: handler };
 
 async function handle(req) {
   if (req.method !== 'POST') return methodNotAllowed(['POST']);
@@ -75,7 +85,7 @@ async function handle(req) {
   if (!spec) return resp(400, { error: 'Unknown or non-cover asset: ' + body.asset });
   if (!body.aff || !body.aff.code) return resp(400, { error: 'Affiliate data required' });
 
-  const url = buildRenderUrl(body);
+  const url = buildRenderUrl(body, siteOrigin(req));
 
   let browser;
   try {
@@ -125,5 +135,3 @@ async function handle(req) {
     }
   }
 }
-
-export const config = { path: '/api/render-cover' };

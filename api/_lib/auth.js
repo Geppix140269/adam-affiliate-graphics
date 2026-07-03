@@ -1,6 +1,6 @@
 // JWT issuance + verification for the admin session.
 // ESM module. jsonwebtoken is CJS, so we use namespace import for
-// reliable interop under esbuild/Netlify v2 bundling.
+// reliable interop under ESM bundling on Vercel.
 
 import jsonwebtoken from 'jsonwebtoken';
 

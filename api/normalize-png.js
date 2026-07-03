@@ -18,14 +18,18 @@ import { resp, methodNotAllowed } from './_lib/resp.js';
 
 const MAX_BYTES = 12 * 1024 * 1024; // 12 MB cap on input
 
-export default async (req) => {
+async function handler(req) {
   try {
     return await handle(req);
   } catch (e) {
     console.error('normalize-png fatal:', e?.stack || e);
     return resp(500, { error: 'Could not normalise image: ' + (e?.message || 'unknown') });
   }
-};
+}
+
+// Vercel Node.js runtime Web Handler: the `fetch` export receives the
+// standard Request and handles all HTTP methods in one function.
+export default { fetch: handler };
 
 async function handle(req) {
   if (req.method !== 'POST') return methodNotAllowed(['POST']);
@@ -72,4 +76,3 @@ async function handle(req) {
   });
 }
 
-export const config = { path: '/api/normalize-png' };

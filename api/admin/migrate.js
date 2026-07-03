@@ -2,10 +2,10 @@
 // Body: { migration_id: string }
 // Idempotent named migrations.
 
-import { requireAuth } from './_lib/auth.js';
-import { getAffiliates, setAffiliates, getCobranded, setCobranded, nowIso } from './_lib/blob.js';
-import { generateAccessKey } from './_lib/validation.js';
-import { resp, methodNotAllowed, parseJson } from './_lib/resp.js';
+import { requireAuth } from '../_lib/auth.js';
+import { getAffiliates, setAffiliates, getCobranded, setCobranded, nowIso } from '../_lib/blob.js';
+import { generateAccessKey } from '../_lib/validation.js';
+import { resp, methodNotAllowed, parseJson } from '../_lib/resp.js';
 
 // ------ Migration: v3-roster-sync-2026-05-14 ------
 // Source of truth: roster Giuseppe provided on 2026-05-14, paired with the
@@ -141,14 +141,18 @@ const MIGRATIONS = {
   'v3-roster-sync-2026-05-14': runRosterSync,
 };
 
-export default async (req) => {
+async function handler(req) {
   try {
     return await handle(req);
   } catch (e) {
     console.error('admin-migrate fatal:', e?.stack || e);
     return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
   }
-};
+}
+
+// Vercel Node.js runtime Web Handler: the `fetch` export receives the
+// standard Request and handles all HTTP methods in one function.
+export default { fetch: handler };
 
 async function handle(req) {
   const session = requireAuth(req);
@@ -166,4 +170,3 @@ async function handle(req) {
   return resp(200, result);
 }
 
-export const config = { path: '/api/admin/migrate' };

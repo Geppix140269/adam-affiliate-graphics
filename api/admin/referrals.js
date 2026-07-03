@@ -6,20 +6,24 @@
 // JWT-protected (the same admin session as the rest of the dashboard),
 // because referral records contain prospect names and emails.
 
-import { requireAuth } from './_lib/auth.js';
-import { getAllReferrals, updateReferralStatus } from './_lib/blob.js';
-import { resp, methodNotAllowed, parseJson } from './_lib/resp.js';
+import { requireAuth } from '../_lib/auth.js';
+import { getAllReferrals, updateReferralStatus } from '../_lib/blob.js';
+import { resp, methodNotAllowed, parseJson } from '../_lib/resp.js';
 
 const VALID_STATUS = ['submitted', 'reviewing', 'approved', 'declined'];
 
-export default async (req) => {
+async function handler(req) {
   try {
     return await handle(req);
   } catch (e) {
     console.error('admin-referrals fatal:', e?.stack || e);
     return resp(500, { error: 'Server error: ' + (e?.message || 'unknown') });
   }
-};
+}
+
+// Vercel Node.js runtime Web Handler: the `fetch` export receives the
+// standard Request and handles all HTTP methods in one function.
+export default { fetch: handler };
 
 async function handle(req) {
   const session = requireAuth(req);
@@ -47,4 +51,3 @@ async function handle(req) {
   return methodNotAllowed(['GET', 'PUT']);
 }
 
-export const config = { path: '/api/admin/referrals' };
